@@ -162,7 +162,7 @@ body{min-height:100vh;display:flex;flex-direction:column;align-items:center;just
     <div class="ab"><button class="b" data-k="b">B</button><button class="a" data-k="a">A</button></div>
   </div>
 </div>
-<div class="help"><b>Cómo se juega:</b> haz clic en la pantalla o presiona <b>A / Enter</b> para continuar · <b>B / Esc</b> para volver o cancelar · <b>SELECT / S</b> abre tus apuntes (en un gimnasio, su lección) · elige con el ratón o con <b>↑ ↓ ← →</b> y <b>Enter</b> · en los combates también sirven las teclas <b>1-4</b>.<br>Si te equivocas no pasa nada: pierdes un poco de ánimo, lees la pista y eliges otra opción. ¡Así se aprende!</div>
+<div class="help"><b>Cómo se juega:</b> haz clic en la pantalla o presiona <b>A</b> (tecla <b>X</b> o <b>Enter</b>) para continuar · <b>B</b> (tecla <b>Z</b> o <b>Esc</b>) para volver o cancelar · <b>SELECT / S</b> abre tus apuntes (en un gimnasio, su lección) · elige con el ratón o con <b>↑ ↓ ← →</b> y <b>Enter</b> · en los combates también sirven las teclas <b>1-4</b>.<br>Si te equivocas no pasa nada: pierdes un poco de ánimo, lees la pista y eliges otra opción. ¡Así se aprende!</div>
 
 <script>
 /*ASSETS*/
@@ -373,7 +373,15 @@ function menu(items,cls,onPick,opt={}){
   H.a=tap(()=>pick(cur));
   // B = volver/cancelar: opt.back es el número de la opción "no/volver" o una función
   H.b=opt.back==null?null:tap(typeof opt.back==='function'?opt.back:()=>pick(opt.back));
-  H.mv=(dx,dy)=>{const d=(cls.includes('opts')&&!opt.iconlist)?(dx||dy*2):(dx||dy);move(d>0?1:-1)};
+  // flechas: en la cuadrícula de 2 columnas (respuestas del combate) ↑↓ cambian de fila y ←→ de columna;
+  // en las listas (mapa, sí/no) cualquier flecha sube o baja
+  H.mv=(dx,dy)=>{
+    const rows=Math.ceil(items.length/2);
+    if(!cls.includes('opts')||!dy||rows<2)return move((dx||dy)>0?1:-1);
+    const row=Math.floor(cur/2)+(dy>0?1:-1);if(row<0||row>=rows)return;
+    const n=[row*2+cur%2,row*2,row*2+1].find(j=>j<items.length&&!items[j].off);
+    if(n!=null){SFX.play('cursor');setCur(n)}
+  };
   H.num=n=>{if(n>=1&&n<=items.length)pick(n-1)};
   const first=items.findIndex(i=>!i.off);setCur(opt.start??Math.max(0,first));
   return api;
@@ -389,7 +397,7 @@ function notes(){
   const g=gymCtx==null?null:G[gymCtx],got=G.filter((_,i)=>done[i]);
   const body=g
     ?`<h3>APUNTES · ${g.name}</h3><ul>${g.clase.map(t=>`<li>${t}</li>`).join('')}</ul><p><span class="k">FRASE:</span> ${g.frase}</p>`
-    :`<h3>APUNTES · ${got.length} DE 4 INSIGNIAS</h3>${got.length?`<ul>${got.map(x=>`<li><span class="k">${x.BN}:</span> ${x.takeaway}</li>`).join('')}</ul>`:'<p>Aún no tienes insignias. Cada una que ganes añadirá aquí lo que aprendiste.</p>'}<p><span class="k">CONTROLES:</span> A o clic: avanzar · B: volver o cancelar · SELECT: apuntes · ↑↓←→ o 1-4: elegir</p>`;
+    :`<h3>APUNTES · ${got.length} DE 4 INSIGNIAS</h3>${got.length?`<ul>${got.map(x=>`<li><span class="k">${x.BN}:</span> ${x.takeaway}</li>`).join('')}</ul>`:'<p>Aún no tienes insignias. Cada una que ganes añadirá aquí lo que aprendiste.</p>'}<p><span class="k">CONTROLES:</span> A (X o Enter) o clic: avanzar · B (Z o Esc): volver o cancelar · SELECT (S): apuntes · flechas o 1-4: elegir</p>`;
   const el=L(`<div class="notes"><div class="card">${body}<p class="note">Pulsa SELECT, B o haz clic para cerrar</p></div></div>`);
   el.addEventListener('click',e=>{e.stopPropagation();closeNotes()});
   notesOpen={el,saved:{...H}};   // guarda los controles de la escena para devolverlos al cerrar
@@ -628,7 +636,7 @@ function key(k){
   else if(k==='u')H.mv&&H.mv(0,-1);else if(k==='d')H.mv&&H.mv(0,1);else if(k==='l')H.mv&&H.mv(-1,0);else if(k==='r')H.mv&&H.mv(1,0);
 }
 document.querySelectorAll('[data-k]').forEach(b=>b.addEventListener('click',()=>key(b.dataset.k)));
-const KEYS={Enter:'a',' ':'a',z:'a',Z:'a',Escape:'b',x:'b',X:'b',Backspace:'b',s:'sel',S:'sel',ArrowUp:'u',ArrowDown:'d',ArrowLeft:'l',ArrowRight:'r'};
+const KEYS={Enter:'a',' ':'a',x:'a',X:'a',Escape:'b',z:'b',Z:'b',Backspace:'b',s:'sel',S:'sel',ArrowUp:'u',ArrowDown:'d',ArrowLeft:'l',ArrowRight:'r'};
 const typing=e=>e.target instanceof Element&&(/TEXTAREA|INPUT/.test(e.target.tagName)||!!e.target.closest('.form,a'));   // en formularios y enlaces, las teclas funcionan normal
 addEventListener('keydown',e=>{
   if(typing(e))return;
