@@ -24,6 +24,18 @@ body{min-height:100vh;display:flex;flex-direction:column;align-items:center;just
 .ab{display:flex;gap:16px;justify-content:flex-end;align-items:center}
 .ab button{width:58px;height:58px;border-radius:50%;border:0;background:#f0e6dc;color:#8f2010;font:bold 16px 'Press Start 2P',monospace;cursor:pointer;box-shadow:0 5px 0 #a08e80, inset 0 -4px 0 #d3c3b6}
 .ab .a{transform:translateY(-14px)}
+/* ---------- botones de la consola: brillan al pasar el cursor y se hunden al presionarlos ---------- */
+.dpad button,.mid button,.ab button{transition:transform .07s,box-shadow .07s,background-color .15s,color .15s;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+@media (hover:hover){   /* solo con ratón: en pantallas táctiles no hay "pasar por encima" */
+  .dpad button:not(.c):hover{background:#3e3e4c;color:#ffd24a;box-shadow:0 3px 0 #111,0 0 12px #ffd24a99}
+  .mid button:hover{background:#fff;color:#8f2010;box-shadow:0 3px 0 #8a8a98,0 0 12px #ffffffaa}
+  .ab button:hover{background:#fffaf2;color:#e0442a;box-shadow:0 5px 0 #a08e80,inset 0 -4px 0 #d3c3b6,0 0 16px #ffe2a8}
+}
+.dpad button:not(.c):active,.dpad button.pressed{transform:translateY(3px);box-shadow:0 0 0 #111;background:#24242c;color:#ffd24a}
+.mid button:active,.mid button.pressed{transform:rotate(-18deg) translateY(3px);box-shadow:0 0 0 #8a8a98}
+.ab button:active,.ab button.pressed{transform:translateY(5px);box-shadow:0 0 0 #a08e80,inset 0 3px 6px #0003}
+.ab .a:active,.ab .a.pressed{transform:translateY(-9px)}
+.dpad button:focus-visible,.mid button:focus-visible,.ab button:focus-visible{outline:2px solid #ffd24a;outline-offset:3px}
 .help{margin-top:14px;font-size:9px;line-height:1.9;color:#b9b9c8;text-align:center;max-width:900px}
 .help b{color:#ffd24a}
 .rot{display:none}
@@ -153,67 +165,6 @@ const MUS={1:'audio/socrates.mp3',2:'audio/tomas.mp3',3:'audio/descartes.mp3',4:
 const aud=new Audio();aud.loop=true;aud.volume=.35;let muted=false,curM=0;
 function music(k){if(k===curM)return;curM=k;if(!k){aud.pause();return}aud.src=MUS[k];if(!muted)aud.play().catch(()=>{})}
 function toggleMute(){muted=!muted;const b=document.querySelector('[data-k=mute]');b.textContent=muted?'🔇 SONIDO':'🔊 SONIDO';if(muted)aud.pause();else if(curM)aud.play().catch(()=>{})}
-/* ---------------- EFECTOS DE SONIDO (8-bit, generados con Web Audio; sin archivos) ----------------
-   Selección final elegida el 20/11/2026. El botón 🔊 SONIDO silencia música y efectos a la vez. */
-const SFX=(()=>{
-  let ctx=null,master=null;const waves={};let noiseBuf=null;
-  function ac(){
-    if(!ctx){const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;
-      ctx=new C();master=ctx.createGain();master.gain.value=.6;
-      const comp=ctx.createDynamicsCompressor();comp.threshold.value=-14;comp.ratio.value=4;
-      master.connect(comp);comp.connect(ctx.destination);}
-    if(ctx.state==='suspended')ctx.resume();
-    return ctx;
-  }
-  function pulse(d){if(waves[d])return waves[d];const n=40,re=new Float32Array(n),im=new Float32Array(n);
-    for(let k=1;k<n;k++)re[k]=2/(k*Math.PI)*Math.sin(k*Math.PI*d);return waves[d]=ctx.createPeriodicWave(re,im)}
-  function osc(w){const o=ctx.createOscillator();
-    if(w==='p12')o.setPeriodicWave(pulse(.125));else if(w==='p25')o.setPeriodicWave(pulse(.25));
-    else o.type={sq:'square',tri:'triangle',saw:'sawtooth',sin:'sine'}[w]||'square';return o}
-  function tone(o,t0){
-    const t=t0+(o.t||0),d=o.d||.1,v=o.v??.25,a=o.a??.004;
-    const os=osc(o.w||'sq'),g=ctx.createGain();
-    const f0=Array.isArray(o.f)?o.f[0]:o.f,f1=Array.isArray(o.f)?o.f[1]:f0;
-    os.frequency.setValueAtTime(f0,t);
-    if(f1!==f0)os.frequency.exponentialRampToValueAtTime(f1,t+d);
-    if(o.vib){const l=ctx.createOscillator(),lg=ctx.createGain();l.frequency.value=o.vib[0];lg.gain.value=o.vib[1];l.connect(lg);lg.connect(os.frequency);l.start(t);l.stop(t+d+.05)}
-    g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+a);
-    if(o.sus)g.gain.setValueAtTime(v,t+d*o.sus);
-    g.gain.exponentialRampToValueAtTime(.0001,t+d);
-    os.connect(g);g.connect(master);os.start(t);os.stop(t+d+.03);
-  }
-  function noise(o,t0){
-    if(!noiseBuf){noiseBuf=ctx.createBuffer(1,ctx.sampleRate,ctx.sampleRate);const ch=noiseBuf.getChannelData(0);for(let i=0;i<ch.length;i++)ch[i]=Math.random()*2-1}
-    const t=t0+(o.t||0),d=o.d||.1,v=o.v??.2;
-    const s=ctx.createBufferSource();s.buffer=noiseBuf;s.loop=true;
-    const fl=ctx.createBiquadFilter();fl.type=o.ft||'lowpass';fl.frequency.setValueAtTime(o.f||2000,t);fl.Q.value=o.q||1;
-    const g=ctx.createGain();g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.003);g.gain.exponentialRampToValueAtTime(.0001,t+d);
-    s.connect(fl);fl.connect(g);g.connect(master);s.start(t);s.stop(t+d+.03);
-  }
-  const NOTE={C:0,D:2,E:4,F:5,G:7,A:9,B:11};
-  function nm(s){const m=/^([A-G])(\d)$/.exec(s);return 440*Math.pow(2,(12*(+m[2]+1)+NOTE[m[1]]-69)/12)}
-  function seq(ns,o,t0){let t=o.t||0;for(const n of ns){const[p,len]=Array.isArray(n)?n:[n,1];const d=len*o.step;if(p!=='-')tone({...o,f:nm(p),t,d:d*(o.gate||.9)},t0);t+=d}}
-  const rnd=(a,b)=>a+Math.random()*(b-a);
-  const lib={
-    start:t=>{tone({w:'sq',f:[300,1200],d:.18,v:.11},t);tone({w:'p12',f:nm('E6'),t:.16,d:.2,v:.18},t)},             // C · barrido brillante
-    texto:t=>tone({w:'sq',f:rnd(240,300),d:.028,v:.06},t),                                                          // C · voz grave
-    avanzar:t=>tone({w:'p12',f:1320,d:.045,v:.14},t),                                                               // A · tic agudo
-    cursor:t=>tone({w:'tri',f:1180,d:.03,v:.22},t),                                                                 // B · gota
-    elegir:t=>seq(['E5','B5'],{w:'p25',step:.05,v:.2},t),                                                           // A · dos notas
-    bloqueado:t=>tone({w:'sq',f:110,d:.14,v:.12,vib:[30,8]},t),                                                     // A · zumbido
-    alerta:t=>seq(['B5','F5'],{w:'p12',step:.12,v:.15,gate:.95},t),                                                 // C · aviso descendente
-    reto:t=>{seq(['E5','F5','E5','F5','E5','F5'],{w:'p25',step:.045,v:.14},t);tone({w:'p25',f:nm('B5'),t:.27,d:.38,v:.16,vib:[7,6],sus:.4},t);noise({f:900,t:.27,d:.15,v:.2},t)}, // A · trino de alarma
-    correcto:t=>{tone({w:'sin',f:nm('E6'),d:.45,v:.25},t);tone({w:'sin',f:nm('B6'),t:.08,d:.5,v:.18},t)},          // B · campanita
-    incorrecto:t=>tone({w:'sq',f:[330,110],d:.3,v:.12},t),                                                          // A · bajón
-    pocion:t=>{for(let i=0;i<6;i++)tone({w:'sin',f:[500+i*130,800+i*160],t:i*.06,d:.05,v:.2},t)},                   // C · burbujas
-    voltear:t=>{noise({ft:'bandpass',f:3000,d:.05,v:.28,q:2},t);tone({w:'p12',f:1046,d:.04,v:.08},t)},              // A · carta
-    victoria:t=>{seq([['C5',1],['E5',1],['G5',1],['C6',2],['G5',1],['C6',4]],{w:'p25',step:.09,v:.15,sus:.5},t);seq([['C3',3],['G3',3],['C4',4]],{w:'tri',step:.09,v:.26,sus:.6},t)}, // A · fanfarria corta
-    insignia:t=>{seq([['C5',1],['E5',1],['G5',1],['B5',1],['C6',3]],{w:'p25',step:.08,v:.15,sus:.5},t);tone({w:'p12',f:nm('G6'),t:.4,d:.3,v:.07},t)}, // C · escalera
-    glitch:t=>{for(let i=0;i<8;i++)i%2?noise({ft:'highpass',f:2500,t:i*.06,d:.04,v:.16},t):tone({w:'sq',f:[80,60],t:i*.06,d:.05,v:.12},t);tone({w:'p12',f:[2000,200],t:.48,d:.22,v:.1},t)}, // C · tartamudeo
-    campeon:t=>{seq([['G4',1],['C5',1],['E5',1],['G5',2],['E5',1],['G5',1],['C6',5]],{w:'tri',step:.16,v:.3,sus:.5},t);seq([['C3',3],['C3',2],['G2',2],['C3',5]],{w:'sq',step:.16,v:.06,sus:.6},t)} // B · majestuosa
-  };
-  return{play(id,delay=0){if(muted||!lib[id])return;const c=ac();if(!c)return;try{lib[id](c.currentTime+.01+delay)}catch(e){}}};
-})();
 const H={a:null,b:null,mv:null,num:null,start:null};
 let tmr=null;
 
@@ -329,7 +280,7 @@ function typeBox(text,opt={}){
   const tx=b.querySelector('.tx'),ar=b.querySelector('.arrow');let n=0;
   // si el texto no cabe (p. ej. una pregunta larga), se reduce la letra hasta que quepa
   tx.textContent=text;let fs=1.4;while(fs>.95&&b.clientHeight&&!fitsBox(b,tx)){fs-=.05;tx.style.fontSize=fs+'cqw'}tx.textContent='';
-  let c=0;const t=setInterval(()=>{n++;tx.textContent=text.slice(0,n);if(text[n-1]>' '&&c++%3===0)SFX.play('texto');if(n>=text.length){clearInterval(t);b._full=true;ar.style.visibility='visible'}},14);
+  const t=setInterval(()=>{n++;tx.textContent=text.slice(0,n);if(n>=text.length){clearInterval(t);b._full=true;ar.style.visibility='visible'}},14);
   b._t=t;b._skip=()=>{clearInterval(t);tx.textContent=text;b._full=true;ar.style.visibility='visible'};
   return b;
 }
@@ -337,18 +288,18 @@ function say(lines,cb,opt={}){
   if(typeof lines==='string')lines=[lines];
   scr.querySelectorAll('.menu').forEach(m=>m.classList.add('idle'));   // un menú que queda de fondo ya no está activo
   lines=lines.flatMap(l=>pages(l,opt));let i=0;let b;
-  const show=()=>{b=typeBox(lines[i],opt);opt.onShow&&opt.onShow(lines[i])};
+  const show=()=>{b=typeBox(lines[i],opt)};
   show();
   H.mv=null;H.num=null;H.b=null;
-  H.a=()=>{if(!b._full){b._skip();return}SFX.play('avanzar');i++;if(i>=lines.length){H.a=null;if(opt.keep!==true)b.remove();cb&&cb()}else show()};
+  H.a=()=>{if(!b._full){b._skip();return}i++;if(i>=lines.length){H.a=null;if(opt.keep!==true)b.remove();cb&&cb()}else show()};
 }
 function menu(items,cls,onPick,opt={}){
   const m=L(`<div class="menu ${cls}"></div>`);let cur=opt.start||0;const els=[];
   items.forEach((it,i)=>{const e=document.createElement('div');e.className='it '+(it.cls||'');e.innerHTML=it.html;e.dataset.i=i;if(it.off)e.classList.add('off');m.appendChild(e);els.push(e);
-    e.addEventListener('mouseenter',()=>{if(!it.off&&cur!==i){setCur(i);SFX.play('cursor')}});e.addEventListener('click',ev=>{ev.stopPropagation();pick(i)})});
+    e.addEventListener('mouseenter',()=>{if(!it.off)setCur(i)});e.addEventListener('click',ev=>{ev.stopPropagation();pick(i)})});
   function setCur(i){cur=i;els.forEach((e,j)=>e.classList.toggle('sel',j===i))}
-  function pick(i){const it=items[i];if(it.off){SFX.play('bloqueado');return}setCur(i);if(!opt.quiet)SFX.play('elegir');onPick(i,api)}
-  function move(d){let n=cur;for(let k=0;k<items.length;k++){n=(n+d+items.length)%items.length;if(!items[n].off){if(n!==cur)SFX.play('cursor');setCur(n);return}}}
+  function pick(i){const it=items[i];if(it.off)return;setCur(i);onPick(i,api)}
+  function move(d){let n=cur;for(let k=0;k<items.length;k++){n=(n+d+items.length)%items.length;if(!items[n].off){setCur(n);return}}}
   const api={els,items,setHtml(i,h){els[i].innerHTML=h},off(i){items[i].off=true;els[i].classList.add('off')},el:m,remove(){m.remove()},cur:()=>cur};
   H.a=tap(()=>pick(cur));H.b=null;
   H.mv=(dx,dy)=>{const d=(cls.includes('opts')&&!opt.iconlist)?(dx||dy*2):(dx||dy);move(d>0?1:-1)};
@@ -370,7 +321,7 @@ function title(){
   L(`<div class="ctr press">▶ PRESIONA START O HAZ CLIC</div>`);
   L(`<div class="ctr" style="bottom:2%;font-size:.95cqw;color:#fff">Humanismo Clásico y Contemporáneo · Universidad Anáhuac Mayab · Equipo 4</div>`);
   H.a=H.start=tap(()=>{   // tap(): un doble clic que venga de la pantalla anterior no se salta la portada
-    H.a=H.start=null;SFX.play('start');
+    H.a=H.start=null;
     fontsReady.then(()=>{
       if(!hasProgress())return oak(0);
       scr.querySelector('.press')?.remove();
@@ -385,7 +336,7 @@ function title(){
 }
 /* pide confirmación antes de borrar todo (insignias, reflexiones y manifiesto) */
 function confirmWipe(yes,no){
-  SFX.play('alerta');typeBox('¿Seguro? Se borrarán tus insignias, tus reflexiones y tu manifiesto. Si quieres conservarlos, cópialos o descárgalos antes.',{title:'ATENCIÓN'});
+  typeBox('¿Seguro? Se borrarán tus insignias, tus reflexiones y tu manifiesto. Si quieres conservarlos, cópialos o descárgalos antes.',{title:'ATENCIÓN'});
   menu([{html:'No, volver'},{html:'Sí, borrar todo'}],'yn',(i,m)=>{m.remove();if(i===1){wipe();yes()}else no()});
 }
 function oakScene(){scene('bg_lab');L(img('sp_prof','',`position:absolute;left:26%;top:20%;height:30cqw;z-index:3`));L(img('sp_alex','',`position:absolute;left:52%;top:26%;height:26cqw;z-index:3`));L(img('sp_leonel','',`position:absolute;left:72%;top:42%;height:15cqw;z-index:3`))}
@@ -409,7 +360,7 @@ function map(start){
   menu(items,'list',(i)=>{i<4?gymIntro(i):glitch()},{start:Math.min(start,items.length-1)});
 }
 function gymIntro(k){
-  const g=G[k];music(k+1);scene(g.bg);SFX.play('reto');
+  const g=G[k];music(k+1);scene(g.bg);
   L(`<div class="ctr" style="top:4%;font-size:1.3cqw;color:#fff">${g.place}</div>`);
   L(badgesTop());
   say([`¡${g.name} quiere luchar!`,g.intro],()=>ficha(k),{title:g.name,keep:true});
@@ -418,13 +369,13 @@ function ficha(k){
   const g=G[k];scene(g.bg);
   L(`<div class="card"><h3>FICHA DE LA ÉPOCA</h3><p><span class="k">ARTE:</span> ${g.arte}</p><p><span class="k">MÚSICA:</span> ${g.musica} — <a href="${g.url}" target="_blank" rel="noopener">▶ escuchar</a></p><p><span class="k">FRASE:</span> ${g.frase}</p></div>`);
   typeBox('Este es el mundo de '+g.name+'. Escucha su música (se abre en una pestaña nueva) y lee su frase. ▼ para la lección.',{title:'DATO'});
-  H.a=tap(()=>{SFX.play('avanzar');clase(k)});
+  H.a=tap(()=>clase(k));
 }
 function clase(k){
   const g=G[k];scene(g.bg);
   L(`<div class="card"><h3>CLASE RÁPIDA · ${g.name}</h3><ul>${g.clase.map(t=>`<li>${t}</li>`).join('')}</ul></div>`);
   typeBox('Memoriza lo esencial: te servirá en el combate. ▼ para pelear.',{title:'LECCIÓN'});
-  H.a=tap(()=>{SFX.play('avanzar');battle(k)});
+  H.a=tap(()=>battle(k));
 }
 function battle(k){
   const g=G[k];
@@ -443,25 +394,25 @@ function battle(k){
     let opts=q[1].map((t,i)=>({t,ok:g.correct?g.correct[st.q]===i:i===0}));
     if(!st._o||first){st._o=shuffle(opts)}
     if(g.tiles){
-      M=menu(st._o.map(o=>({html:'<span class="qm">?</span>',off:o.dead})),'tiles',pick,{quiet:true});
+      M=menu(st._o.map(o=>({html:'<span class="qm">?</span>',off:o.dead})),'tiles',pick);
       M.els.forEach((e,i)=>{e.className='tile';e.style.left=['1.5%','15.5%','71.5%','85.5%'][i]});
       M.els.forEach((e,i)=>{if(st._o[i].dead){e.classList.add(st._o[i].ok?'good':'bad');e.innerHTML=st._o[i].t}});
       M.el.style.pointerEvents='none';M.els.forEach(e=>e.style.pointerEvents='auto');
       let cur=Math.max(0,st._o.findIndex(o=>!o.dead));
       const setc=()=>M.els.forEach((e,i)=>e.classList.toggle('sel',!st.peek&&i===cur));
-      M.els.forEach((e,i)=>e.addEventListener('mouseenter',()=>{if(!st.peek&&!st._o[i].dead&&cur!==i){cur=i;setc();SFX.play('cursor')}}));
+      M.els.forEach((e,i)=>e.addEventListener('mouseenter',()=>{if(!st.peek&&!st._o[i].dead){cur=i;setc()}}));
       const play=()=>{   // fichas boca abajo: ahora se responde el reto
-        if(st.peek)for(let j=0;j<4;j++)SFX.play('voltear',j*.09);stop();st.peek=false;M.el.classList.remove('idle');
+        stop();st.peek=false;M.el.classList.remove('idle');
         M.els.forEach((e,i)=>{e.classList.remove('peek');if(!st._o[i].dead)e.innerHTML='<span class="qm">?</span>'});
         typeBox(q[0],{title:g.name,cls:box});setc();
-        H.mv=(dx,dy)=>{const d=dx||dy;if(!d)return;const c0=cur;do{cur=(cur+(d>0?1:-1)+4)%4}while(st._o[cur].dead);if(cur!==c0)SFX.play('cursor');setc()};
+        H.mv=(dx,dy)=>{const d=dx||dy;if(!d)return;do{cur=(cur+(d>0?1:-1)+4)%4}while(st._o[cur].dead);setc()};
         H.a=tap(()=>pick(cur));
         H.num=n=>{if(n>=1&&n<=4)pick(n-1)};
       };
       if(first){   // al empezar cada reto las fichas se ven unos segundos: hay que memorizarlas
         st.peek=true;H.mv=H.num=null;setc();
         M.el.classList.add('idle');   // mientras se memoriza, tocar la pantalla sirve para empezar ya
-        M.els.forEach((e,i)=>{e.classList.add('peek');e.innerHTML=st._o[i].t});for(let j=0;j<4;j++)SFX.play('voltear',j*.09);
+        M.els.forEach((e,i)=>{e.classList.add('peek');e.innerHTML=st._o[i].t});
         typeBox('¡Memoriza dónde queda cada valor! Las fichas se darán la vuelta en unos segundos… (toca la pantalla o pulsa A para empezar ya)',{title:g.name,cls:box});
         H.a=tap(play,700);
         tmr=setTimeout(play,4500);
@@ -469,17 +420,16 @@ function battle(k){
     }else{
       typeBox(q[0],{title:g.name});
       const items=st._o.map(o=>g.icon?{html:img('i_'+o.t),cls:'ico',off:o.dead}:{html:o.t,off:o.dead});
-      M=menu(items,'opts'+(g.icon?' icons':''),pick,{iconlist:false,quiet:true});
+      M=menu(items,'opts'+(g.icon?' icons':''),pick,{iconlist:false});
     }
   }
   function freeze(){M.el.classList.add('idle');M.el.style.pointerEvents='none';M.els.forEach(e=>e.style.pointerEvents='none')}
   function pick(i){
     if(st.peek)return;
-    const o=st._o[i];if(!o||o.dead){if(o)SFX.play('bloqueado');return}
+    const o=st._o[i];if(!o||o.dead)return;
     const q=g.qs[st.q];
     H.a=H.mv=H.num=null;
     if(o.ok){
-      SFX.play('correcto');
       if(st.wq===0)st.first++;
       o.dead=true;
       st.foe--;upd();scr.querySelector('.hud.foe').classList.add('flash');
@@ -489,7 +439,7 @@ function battle(k){
         if(st.q>=5)win();else{hud();M=null;ask(true)}
       },{title:g.name,keep:false,cls:box});
     }else{
-      SFX.play('incorrecto');o.dead=true;st.wq++;st.hp--;
+      o.dead=true;st.wq++;st.hp--;
       if(g.tiles){M.els[i].classList.add('bad');M.els[i].innerHTML=o.t}else M.off(i);
       freeze();
       upd();scr.querySelector('.hud.me').classList.add('shake');
@@ -501,23 +451,23 @@ function battle(k){
       if(st.wq>=2)lines.push('PISTA: '+q[2]);   // la pista va en su propia página para que se lea completa
       let faint=false;
       if(st.hp<=0){faint=true;st.hp=5;lines.push('Alex está agotado… Pero el Profesor Oak le da una Poción de Ideas. ¡Ánimo restaurado! Sin castigo: lo importante es aprender.')}
-      say(lines,()=>{if(faint)upd();ask(false)},{title:'¡UPS!',keep:false,cls:box,onShow:l=>{if(faint&&/^Alex está agotado/.test(l))SFX.play('pocion')}});
+      say(lines,()=>{if(faint)upd();ask(false)},{title:'¡UPS!',keep:false,cls:box});
     }
   }
   function win(){
-    done[k]=true;save();SFX.play('victoria');
+    done[k]=true;save();
     scene(g.bg);L(`<div class="hud foe"><div class="nm">${g.name}<span>Nv.100</span></div><div class="hp"><b>PS</b><i><u style="width:0%" class="r"></u></i></div></div>`);
     say([`¡Has derrotado a ${g.name}!`,`${g.name}: «Has aprendido bien. Toma tu insignia.»`],()=>badge(k,st.first),{title:'¡VICTORIA!'});
   }
   hud();ask(true);
 }
 function badge(k,first){
-  const g=G[k];scene('bg_final');SFX.play('insignia');L('<div class="stars"></div>');
+  const g=G[k];scene('bg_final');L('<div class="stars"></div>');
   L(img('b_'+g.badge,'badgeBig'));
   say([`¡Felicidades, Alex! Has obtenido la ${g.BN}. Sumas ${done.filter(Boolean).length} de 4 insignias para tu Pokédex del Ser.`,`Respondiste ${first} de 5 retos a la primera. ${first===5?'¡Perfecto!':first>=3?'¡Muy bien!':'Repite el gimnasio cuando quieras: repasar también es aprender.'}`,`Lo que aprendiste: ${g.takeaway}`],()=>map(Math.min(k+1,4)),{title:'INSIGNIA'});
 }
 function glitch(){
-  music(0);scene('bg_distorsion','glitch');SFX.play('glitch');
+  music(0);scene('bg_distorsion','glitch');
   say(['¡Un glitch! El Mundo Distorsión (Posmodernidad) aparece. Las certezas se desvanecen…','Aquí ya no hay una sola gran historia que lo explique todo. Jean-François Lyotard la llamó «incredulidad con respecto a los metarrelatos» (La condición posmoderna, 1979).','Arte: Marilyn Diptych (Warhol, 1962), arte pop de la cultura de masas. Música: «Everything in Its Right Place» (Radiohead, 2000).','¡Alex, solo con tus 4 insignias puedes entrar al Pokédex del Ser!'],()=>dex(),{title:'MUNDO DISTORSIÓN'});
 }
 function dex(){
@@ -533,8 +483,8 @@ function refl(i){
   const f=L(`<div class="form"><h3>REFLEXIÓN (no se califica) · ${i+1}/4</h3><p>${REFL[i]}</p>${i===3?'<p class="note">«La incredulidad con respecto a los metarrelatos» (Lyotard, 1979)</p>':''}<textarea placeholder="Escribe aquí tu reflexión…"></textarea><div class="btns"><span class="note" style="align-self:center;margin-right:auto">${saveLabel()}</span>${i>0?'<button class="btn alt" id="bp">◀ Atrás</button>':''}<button class="btn" id="bn">${i<3?'Siguiente ▶':'Ir al manifiesto ▶'}</button></div></div>`);
   const ta=f.querySelector('textarea');ta.value=answers[i];
   ta.addEventListener('input',()=>{answers[i]=ta.value;save()});
-  f.querySelector('#bn').onclick=()=>{SFX.play('elegir');answers[i]=ta.value;save();i<3?refl(i+1):manifest()};
-  const bp=f.querySelector('#bp');if(bp)bp.onclick=()=>{SFX.play('elegir');answers[i]=ta.value;save();refl(i-1)};
+  f.querySelector('#bn').onclick=()=>{answers[i]=ta.value;save();i<3?refl(i+1):manifest()};
+  const bp=f.querySelector('#bp');if(bp)bp.onclick=()=>{answers[i]=ta.value;save();refl(i-1)};
   H.a=null;
 }
 function manifest(){
@@ -544,8 +494,8 @@ function manifest(){
   ta.value=manif;pn.value=player;
   ta.addEventListener('input',()=>{manif=ta.value;save()});
   pn.addEventListener('input',()=>{player=pn.value;save()});
-  f.querySelector('#bc').onclick=()=>{SFX.play('elegir');copyText(fullText(),cp)};
-  f.querySelector('#bd').onclick=()=>{SFX.play('elegir');download(fullText());cp.textContent='¡Descargado!'};
+  f.querySelector('#bc').onclick=()=>copyText(fullText(),cp);
+  f.querySelector('#bd').onclick=()=>{download(fullText());cp.textContent='¡Descargado!'};
   f.querySelector('#bf').onclick=()=>final();
 }
 function copyText(t,msg){
@@ -559,7 +509,7 @@ function download(t){
   document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
 }
 function final(){
-  scene('bg_final');SFX.play('campeon');L('<div class="stars"></div>');
+  scene('bg_final');L('<div class="stars"></div>');
   L(`<div class="ctr" style="top:6%;font-size:3.6cqw;color:#ffd24a">¡FELICIDADES, ALEX!</div>`);
   G.forEach((g,i)=>L(img('b_'+g.badge,'',`position:absolute;left:${14+i*18}%;top:24%;width:13cqw;height:13cqw;z-index:3;animation:pop .8s steps(8)`)));
   say(['Has completado la Liga de la Región Filosófica. Descubriste que ser humano implica pensar, cuestionar, buscar sentido, actuar con virtud y ejercer responsablemente la libertad.','¡ERES EL CAMPEÓN DE LA REGIÓN FILOSÓFICA!'],finalMenu,{title:'CAMPEÓN',keep:true});
@@ -584,11 +534,19 @@ function key(k){
   else if(k==='u')H.mv&&H.mv(0,-1);else if(k==='d')H.mv&&H.mv(0,1);else if(k==='l')H.mv&&H.mv(-1,0);else if(k==='r')H.mv&&H.mv(1,0);
 }
 document.querySelectorAll('[data-k]').forEach(b=>b.addEventListener('click',()=>key(b.dataset.k)));
+const KEYS={Enter:'a',' ':'a',z:'a',Z:'a',Escape:'b',x:'b',X:'b',Backspace:'b',ArrowUp:'u',ArrowDown:'d',ArrowLeft:'l',ArrowRight:'r'};
+const typing=e=>e.target instanceof Element&&(/TEXTAREA|INPUT/.test(e.target.tagName)||!!e.target.closest('.form,a'));   // en formularios y enlaces, las teclas funcionan normal
 addEventListener('keydown',e=>{
-  if(/TEXTAREA|INPUT/.test(e.target.tagName)||e.target.closest('.form,a'))return;   // en formularios y enlaces, las teclas funcionan normal
-  const m={Enter:'a',' ':'a',z:'a',Z:'a',Escape:'b',x:'b',X:'b',Backspace:'b',ArrowUp:'u',ArrowDown:'d',ArrowLeft:'l',ArrowRight:'r'}[e.key];
+  if(typing(e))return;
+  const m=KEYS[e.key];
   if(m){e.preventDefault();key(m)}else if(/^[1-9]$/.test(e.key)&&H.num)H.num(+e.key);
 });
+/* al usar el teclado, el botón equivalente de la consola también se hunde (y se suelta al soltar la tecla) */
+const btnOf=e=>KEYS[e.key]&&document.querySelector(`.controls [data-k="${KEYS[e.key]}"]`);
+addEventListener('keydown',e=>{const b=!typing(e)&&btnOf(e);if(b)b.classList.add('pressed')});
+addEventListener('keyup',e=>{const b=btnOf(e);if(b)b.classList.remove('pressed')});
+addEventListener('blur',()=>document.querySelectorAll('.controls .pressed').forEach(b=>b.classList.remove('pressed')));
+document.addEventListener('touchstart',()=>{},{passive:true});   // hace que el efecto de "presionar" también se vea en iPhone
 load();save();   // prueba si este navegador permite guardar
 title();
 </script>
