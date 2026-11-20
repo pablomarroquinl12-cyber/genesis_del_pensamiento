@@ -1,0 +1,15 @@
+GÉNESIS DEL PENSAMIENTO — EDICIÓN ROJO FUEGO (Equipo 4, Humanismo Clásico y Contemporáneo, UAM)
+
+PARA JUGAR: abre index.html con doble clic (Chrome, Edge o Firefox). Es un solo archivo, sin instalar nada.
+PARA PUBLICARLO: sube index.html a Netlify Drop (app.netlify.com/drop) o a GitHub Pages.
+
+ARCHIVOS
+- index.html ........ el juego completo (ya incluye todas las imágenes).
+- game.tpl.html ..... código fuente (HTML+CSS+JS). Aquí se editan preguntas, textos y estilo.
+- assets/ ........... sprites originales, insignias, íconos y fondos.
+- imagenes_epoca/ ... fondos de las 4 épocas (Sócrates, Tomás, Descartes, Nietzsche).
+- construir_juego.py  regenera index.html tras editar game.tpl.html o las imágenes.
+                      Requisitos: Python 3 y Pillow (pip install pillow). Ejecutar: python construir_juego.py
+- herramientas_opcionales/ scripts con que se generaron las imágenes y la presentación (opcionales; tienen rutas de la máquina original).
+
+Para cambiar preguntas: busca "const G=[" dentro de game.tpl.html.

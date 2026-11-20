@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Génesis del Pensamiento — Edición Rojo Fuego</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;background:#17171f;color:#fff}
+body{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px;font-family:'Press Start 2P','Courier New',monospace}
+.shell{width:min(100%,1040px);background:linear-gradient(180deg,#e0442a 0%,#b52a17 60%,#8f2010 100%);border-radius:26px 26px 70px 70px;padding:18px 18px 22px;box-shadow:0 12px 40px #000a, inset 0 3px 0 #ff9a7f, inset 0 -6px 0 #6d160a;container-type:inline-size}
+.brand{display:flex;justify-content:space-between;font-size:9px;color:#ffd9cf;letter-spacing:2px;margin:0 6px 8px;text-shadow:1px 1px #6d160a}
+.bezel{background:#2c2d38;border-radius:14px 14px 40px 14px;padding:3.2cqw 4cqw;box-shadow:inset 0 0 0 3px #1a1b22, inset 0 4px 12px #000}
+.led{display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff5a3c;box-shadow:0 0 8px #ff5a3c;margin-right:8px;vertical-align:middle}
+#screen{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;background:#111 center/cover no-repeat;image-rendering:pixelated;container-type:inline-size;border:3px solid #0c0c10;user-select:none;-webkit-user-select:none}
+.controls{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;margin-top:18px;padding:0 4cqw}
+.dpad{display:grid;grid-template-columns:repeat(3,42px);grid-template-rows:repeat(3,42px);justify-content:start}
+.dpad button{background:#2b2b33;border:0;color:#9a9aa8;font-size:14px;cursor:pointer;box-shadow:0 3px 0 #111}
+.dpad .u{grid-area:1/2}.dpad .l{grid-area:2/1}.dpad .r{grid-area:2/3}.dpad .d{grid-area:3/2}.dpad .c{grid-area:2/2;background:#2b2b33;pointer-events:none}
+.mid{display:flex;gap:18px;justify-content:center}
+.mid button{background:#d8d8e0;border:0;border-radius:20px;font:8px 'Press Start 2P',monospace;padding:9px 14px;color:#444;cursor:pointer;box-shadow:0 3px 0 #8a8a98;transform:rotate(-18deg)}
+.ab{display:flex;gap:16px;justify-content:flex-end;align-items:center}
+.ab button{width:58px;height:58px;border-radius:50%;border:0;background:#f0e6dc;color:#8f2010;font:bold 16px 'Press Start 2P',monospace;cursor:pointer;box-shadow:0 5px 0 #a08e80, inset 0 -4px 0 #d3c3b6}
+.ab .a{transform:translateY(-14px)}
+.help{margin-top:14px;font-size:9px;line-height:1.9;color:#b9b9c8;text-align:center;max-width:900px}
+.help b{color:#ffd24a}
+.rot{display:none}
+
+/* ---------- celular vertical: consola compacta + aviso para girar ---------- */
+@media (max-width:640px) and (orientation:portrait){
+  body{padding:8px;justify-content:flex-start}
+  .rot{display:block;width:100%;margin:4px 0 12px;padding:10px 12px;font-size:9px;line-height:1.9;color:#ffd24a;text-align:center;border:2px dashed #ffd24a66;border-radius:10px}
+  .shell{padding:10px 10px 18px;border-radius:18px 18px 44px 44px}
+  .brand{font-size:7px;letter-spacing:1px}
+  .bezel{padding:8px;border-radius:10px 10px 24px 10px}
+  .controls{grid-template-columns:auto auto;justify-content:space-between;padding:0 6px;margin-top:14px}
+  .mid{display:none}
+  .dpad{grid-template-columns:repeat(3,38px);grid-template-rows:repeat(3,38px)}
+  .ab button{width:52px;height:52px}
+  .help{font-size:8px}
+}
+/* ---------- celular horizontal: la pantalla ocupa todo el alto disponible ---------- */
+@media (orientation:landscape) and (max-height:520px){
+  body{padding:4px;min-height:100vh;min-height:100dvh}
+  .brand,.controls,.help,.rot{display:none}
+  .shell{width:min(100%,calc((100vh - 26px)*16/9 + 26px));width:min(100%,calc((100dvh - 26px)*16/9 + 26px));padding:6px;border-radius:12px}
+  .bezel{padding:4px;border-radius:8px}
+}
+
+/* ---------- UI del juego (unidades relativas a la pantalla) ---------- */
+#screen{font-size:1.45cqw;line-height:1.7;color:#303040}
+.dlg{position:absolute;left:2.2%;bottom:3%;width:56%;height:28%;background:#2a3b57;border:.55cqw solid #e9a24c;outline:.3cqw solid #1a2438;border-radius:1.2cqw;padding:1.8cqw 2cqw;color:#fff;z-index:5;text-shadow:.15cqw .15cqw #0b1220}
+.dlg .tx{white-space:pre-wrap;line-height:2.05;font-size:1.4cqw}
+.dlg .arrow{position:absolute;right:1.6cqw;bottom:1cqw;animation:bl .7s steps(2) infinite;color:#ffd24a}
+.dlg .tag{position:absolute;left:1.5cqw;top:-1.9cqw;background:#e9a24c;color:#2a1a08;font-size:1.1cqw;padding:.5cqw 1.2cqw;border-radius:.8cqw .8cqw 0 0;text-shadow:none}
+.dlg.big{width:95.6%;height:30%}
+.dlg.light{background:#f8f8f0;color:#303040;border-color:#4a5a7a;outline-color:#e04a2e;text-shadow:none}
+.dlg.light .tag{background:#4a5a7a;color:#fff}
+@keyframes bl{50%{opacity:0}}
+.menu{position:absolute;z-index:6;background:#f8f8f8;border:.5cqw solid #3a3a52;outline:.3cqw solid #e04a2e;border-radius:1.2cqw;padding:1cqw}
+.menu.opts{right:2.2%;bottom:3%;width:39.8%;height:28%;display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:1fr;gap:.6cqw .8cqw}
+.it{position:relative;display:flex;align-items:center;justify-content:center;text-align:center;padding:.4cqw .5cqw .4cqw 1.6cqw;cursor:pointer;font-size:1.25cqw;line-height:1.5;color:#303040;border-radius:.6cqw;overflow-wrap:anywhere}
+.it.sel::before{content:'▶';position:absolute;left:.3cqw;top:50%;transform:translateY(-50%);color:#e04a2e;font-size:1.1cqw}
+.it.sel{background:#ffe9c9}
+.it.off{opacity:.35;text-decoration:line-through;pointer-events:none}
+.it.ico{padding:.4cqw}.it.ico img{width:5.6cqw;height:5.6cqw;image-rendering:pixelated}
+.it.ico.sel::before{display:none}.it.ico.sel{outline:.3cqw solid #e04a2e}
+.menu.list{left:5%;top:23%;width:60%;display:flex;flex-direction:column;gap:.5cqw;padding:1.4cqw 1.6cqw}
+.menu.list .it{justify-content:flex-start;text-align:left;font-size:1.25cqw;padding:.8cqw 1cqw .8cqw 2.6cqw}
+.menu.list .it.sel::before{left:.8cqw;font-size:1.4cqw}
+.menu.list small{display:block;font-size:.95cqw;color:#6a6a80;margin-top:.3cqw}
+.menu.list .it.lock{opacity:.45}
+.menu.yn{right:5%;bottom:36%;width:30%;display:flex;flex-direction:column;gap:.4cqw}
+.menu.yn .it{justify-content:flex-start;text-align:left;font-size:1.2cqw;padding:.7cqw 1cqw .7cqw 2.6cqw}
+.menu.tiles{background:none;border:0;outline:0;padding:0;left:0;right:0;top:22%;height:16%;display:block}
+.tile{position:absolute;width:13cqw;height:8.5cqw;top:0;background:#2d2d78;border:.5cqw solid #101040;border-radius:1cqw;display:flex;align-items:center;justify-content:center;font-size:1cqw;line-height:1.6;color:#fff;text-align:center;cursor:pointer;box-shadow:0 .7cqw 0 #101040;overflow-wrap:anywhere;hyphens:auto;-webkit-hyphens:auto;padding:.4cqw}
+.tile.peek{background:#f8f1d8;color:#2a1a08;border-color:#7a5a20;box-shadow:0 .7cqw 0 #7a5a20;cursor:default}
+.tile .qm{font-size:4cqw;color:#ffd24a;text-shadow:.3cqw .3cqw #101040}
+.tile.sel{outline:.4cqw solid #ffd24a}
+.tile.bad{background:#a83a3a;border-color:#4a1010}
+.tile.good{background:#2f9a4a;border-color:#0a3a14}
+.hud{position:absolute;z-index:4;background:#faf4d8;border:.45cqw solid #4a4a5a;border-radius:1cqw .4cqw 1cqw .4cqw;padding:.8cqw 1.4cqw;width:30cqw;color:#2a2a3a;box-shadow:.3cqw .3cqw 0 #0006}
+.hud .nm{display:flex;justify-content:space-between;font-size:1.25cqw}
+.hud .nm span{font-size:1cqw;color:#7a5a20}
+.hud .hp{display:flex;align-items:center;gap:.8cqw;margin-top:.6cqw}
+.hud .hp b{font-size:.95cqw;color:#c0601a}
+.hud .hp i{flex:1;height:1.3cqw;background:#4a4a5a;border-radius:1cqw;padding:.2cqw;display:block}
+.hud .hp u{display:block;height:100%;border-radius:1cqw;transition:width .7s steps(14);background:#2fc24a}
+.hud .hp u.y{background:#f0c020}.hud .hp u.r{background:#e03a30}
+.hud .num{text-align:right;font-size:1cqw;margin-top:.3cqw}
+.hud.foe{left:3%;top:5%}
+.hud.me{right:3%;top:44%}
+.pl{position:absolute;left:6%;top:38%;height:21cqw;z-index:3;image-rendering:pixelated;filter:drop-shadow(.4cqw .5cqw 0 #0005)}
+.qn{position:absolute;right:3%;top:4%;z-index:4;background:#2a3b57;border:.4cqw solid #e9a24c;color:#fff;font-size:1.1cqw;padding:.8cqw 1.4cqw;border-radius:.8cqw}
+.flash{animation:fl .5s steps(2) 2}
+@keyframes fl{50%{filter:brightness(2.5) saturate(0)}}
+.shake{animation:sh .4s linear}
+@keyframes sh{20%{transform:translateX(-1cqw)}60%{transform:translateX(1cqw)}}
+.card{position:absolute;z-index:5;left:7%;right:7%;top:6%;bottom:35%;background:#f8f8f0;border:.55cqw solid #4a5a7a;outline:.3cqw solid #e04a2e;border-radius:1.2cqw;padding:1.6cqw 2.2cqw;color:#303040;overflow:hidden}
+.card h3{margin:0 0 1cqw;font-size:1.5cqw;color:#e04a2e}
+.card p{margin:.6cqw 0;font-size:1.15cqw;line-height:1.9}
+.card a{color:#2d4cc8;text-decoration:underline}
+.card ul{margin:.4cqw 0 0;padding-left:2cqw}.card li{font-size:1.15cqw;line-height:1.9;margin:.5cqw 0}
+.card .k{color:#c0601a}
+.ctr{position:absolute;left:0;right:0;text-align:center;z-index:3;text-shadow:.3cqw .3cqw 0 #000}
+.title{top:10%;font-size:4.4cqw;line-height:1.5;color:#ffd24a;text-shadow:.5cqw .5cqw 0 #8a1a10,-.15cqw -.15cqw 0 #fff}
+.sub{top:42%;font-size:1.7cqw;color:#fff}
+.press{bottom:8%;font-size:1.6cqw;color:#fff;animation:bl 1s steps(2) infinite}
+.badges{position:absolute;z-index:3;display:flex;gap:1.5cqw}
+.badges img{width:7cqw;height:7cqw;image-rendering:pixelated}
+.badges.top{right:3%;top:4%}.badges.top img{width:4.4cqw;height:4.4cqw}
+.badgeBig{position:absolute;left:50%;top:20%;width:22cqw;height:22cqw;margin-left:-11cqw;image-rendering:pixelated;animation:pop .8s steps(8);z-index:3}
+@keyframes pop{0%{transform:scale(.1) rotate(-180deg)}100%{transform:none}}
+.stars{position:absolute;inset:0;background-image:radial-gradient(#fff 1px,transparent 1.5px),radial-gradient(#ffd24a 1px,transparent 1.5px);background-size:7cqw 6cqw,11cqw 9cqw;background-position:0 0,3cqw 3cqw;animation:tw 1s steps(2) infinite;opacity:.8}
+@keyframes tw{50%{opacity:.35}}
+.glitch{animation:gl 1.2s steps(6) infinite}
+@keyframes gl{0%,100%{filter:none;transform:none}20%{filter:hue-rotate(90deg) saturate(2);transform:translateX(.6cqw)}40%{filter:invert(.15);transform:translateX(-.8cqw)}60%{filter:hue-rotate(200deg);transform:skewX(2deg)}80%{filter:contrast(1.6);transform:translateX(.4cqw)}}
+.form{position:absolute;z-index:5;left:7%;right:7%;top:6%;bottom:6%;background:#f8f8f0;border:.55cqw solid #4a5a7a;outline:.3cqw solid #e04a2e;border-radius:1.2cqw;padding:1.6cqw 2.2cqw;color:#303040;display:flex;flex-direction:column;gap:1cqw}
+.form h3{margin:0;font-size:1.4cqw;color:#e04a2e}
+.form p{margin:0;font-size:1.1cqw;line-height:1.9}
+.form textarea{flex:1;font:1.15cqw/1.8 'Press Start 2P','Courier New',monospace;border:.35cqw solid #4a5a7a;border-radius:.8cqw;padding:1cqw;resize:none;color:#303040;background:#fff}
+.form input{font:1.15cqw/1.8 'Press Start 2P','Courier New',monospace;border:.35cqw solid #4a5a7a;border-radius:.8cqw;padding:.5cqw 1cqw;color:#303040;background:#fff;width:50%}
+.btn{align-self:flex-end;background:#e04a2e;color:#fff;border:0;border-radius:.8cqw;font:1.1cqw 'Press Start 2P',monospace;padding:1cqw 1.8cqw;cursor:pointer;box-shadow:0 .4cqw 0 #8a1a10}
+.btns{display:flex;gap:1cqw;justify-content:flex-end}
+.btn.alt{background:#4a5a7a;box-shadow:0 .4cqw 0 #232e45}
+.note{font-size:.95cqw;color:#6a6a80}
+</style>
+</head>
+<body>
+<div class="rot">📱 Gira tu celular en horizontal: la pantalla se agranda y el texto se lee mucho mejor.</div>
+<div class="shell">
+  <div class="brand"><span><i class="led"></i>GÉNESIS DEL PENSAMIENTO</span><span>EDICIÓN ROJO FUEGO</span></div>
+  <div class="bezel"><div id="screen" tabindex="0"></div></div>
+  <div class="controls">
+    <div class="dpad"><button class="u" data-k="u">▲</button><button class="l" data-k="l">◀</button><button class="c"></button><button class="r" data-k="r">▶</button><button class="d" data-k="d">▼</button></div>
+    <div class="mid"><button data-k="sel">SELECT</button><button data-k="start">START</button></div>
+    <div class="ab"><button class="b" data-k="b">B</button><button class="a" data-k="a">A</button></div>
+  </div>
+</div>
+<div class="help"><b>Cómo se juega:</b> haz clic en la pantalla o presiona <b>A / Enter</b> para continuar · elige con el ratón o con <b>↑ ↓ ← →</b> y <b>Enter</b> · en los combates también sirven las teclas <b>1-4</b>.<br>Si te equivocas no pasa nada: pierdes un poco de ánimo, lees la pista y eliges otra opción. ¡Así se aprende!</div>
+
+<script>
+/*ASSETS*/
+const $=s=>document.querySelector(s);
+const scr=$('#screen');
+const H={a:null,b:null,mv:null,num:null,start:null};
+let tmr=null;
+
+/* ---------------------------- CONTENIDO ----------------------------
+   REGLA PARA EDITAR PREGUNTAS: en cada pregunta, la PRIMERA opción es la correcta
+   (el juego las baraja al mostrarlas). Única excepción: Tomás usa la lista "correct".
+   Los textos largos se reparten solos en varias páginas del cuadro de diálogo. */
+const G=[
+{id:1,name:'SÓCRATES',bg:'socrates',badge:'virtud',BN:'Insignia de la Virtud',place:'GIMNASIO ÁGORA · EDAD ANTIGUA',
+ arte:'Vasija griega de figuras rojas (simposio, s. V a. C.)',musica:'Epitafio de Seikilos',url:'https://www.youtube.com/watch?v=O6ILsg3q3po',
+ frase:'«Una vida sin examen no merece ser vivida». (Sócrates, según Platón, Apología 38a)',
+ intro:'Soy Sócrates, líder del Gimnasio Ágora. Aquí no se gana con fuerza, sino con preguntas. ¡Demuestra qué has aprendido de la Edad Antigua!',
+ clase:['Método: preguntar y dialogar (mayéutica) para que cada persona descubra la verdad por sí misma.','Virtud (areté): la excelencia del carácter. Quien conoce el bien, obra bien.','«Conócete a ti mismo»: la vida filosófica empieza examinándote.'],
+ takeaway:'Ser humano es examinar la propia vida y buscar la excelencia (virtud).',
+ qs:[['¿Qué método usaba Sócrates para buscar la verdad?',['El diálogo y las preguntas','Memorizar dogmas'],'Sócrates dialogaba y preguntaba (la mayéutica) para que cada persona descubriera la verdad por sí misma.'],
+     ['Según Platón, Sócrates afirmó que merece ser vivida…',['Una vida examinada','Una vida sin preguntas'],'Sócrates sostenía que solo una vida examinada merece ser vivida (Apología 38a).'],
+     ['En la filosofía griega, ¿qué busca quien practica la virtud?',['Vivir con excelencia','Acumular riquezas','Ganar fama'],'La virtud (areté) es la excelencia del carácter para vivir bien.'],
+     ['¿Qué usaba la filosofía antigua para comprender al ser humano y al mundo?',['La razón','El azar','La superstición'],'Los griegos pasaron del mito al logos: usaron la razón para explicar el mundo.'],
+     ['«Conócete a ti mismo» invita a…',['Reflexionar sobre uno mismo','Imitar a los demás'],'El conocimiento de uno mismo es el punto de partida de la vida filosófica.']]},
+{id:2,name:'TOMÁS DE AQUINO',bg:'tomas',badge:'sentido',BN:'Insignia del Sentido',place:'ABADÍA DEL SENTIDO · EDAD MEDIA',
+ arte:'Cristo Pantocrátor (mosaico de Monreale, s. XII)',musica:'Canto gregoriano «Ubi caritas»',url:'https://www.youtube.com/watch?v=b_QEP-RHYLY',
+ frase:'«La gracia no destruye la naturaleza, sino que la perfecciona». (Suma teológica I, q. 1, a. 8)',
+ intro:'Soy Tomás de Aquino. En esta abadía la fe y la razón caminan juntas. Selecciona las imágenes correctas para demostrar tu sabiduría.',
+ clase:['Fe y razón no se contradicen: son dos caminos hacia la misma verdad.','Tomás une la filosofía de Aristóteles con la fe cristiana (Suma teológica).','En la Edad Media el sentido de la vida se buscaba en Dios, en la comunidad y en el conocimiento.'],
+ takeaway:'Ser humano es buscar sentido: la fe y la razón se complementan.',
+ icon:true,
+ qs:[['¿Qué imagen representa la FE?',['cruz','dado','moneda'],'La cruz es el símbolo de la fe cristiana medieval.'],
+     ['¿Qué imagen representa la RAZÓN?',['bombilla','espada','corona'],'La razón es la luz natural del entendimiento.'],
+     ['¿Qué imagen representa el CONOCIMIENTO?',['libro','dado','espada'],'El conocimiento se cultivaba en los libros y las escuelas medievales.'],
+     ['¿Qué imagen representa la ESPIRITUALIDAD?',['vela','fabrica','moneda'],'La vela simboliza la oración y la vida interior.'],
+     ['¿Cuál imagen NO pertenece al pensamiento medieval?',['catedral','fabrica','cruz'],'La fábrica es propia de la era industrial; la catedral sí es medieval.']],
+ correct:[0,0,0,0,1]},
+{id:3,name:'RENÉ DESCARTES',bg:'descartes',badge:'razon',BN:'Insignia de la Razón',place:'LABORATORIO DE LA RAZÓN · EDAD MODERNA',
+ arte:'La escuela de Atenas (Rafael, 1509-1511)',musica:'Canon en re mayor (Pachelbel)',url:'https://www.youtube.com/watch?v=JvNQLJ1_HQ0',
+ frase:'«Pienso, luego existo». (Descartes, Discurso del método, 1637)',
+ intro:'Soy René Descartes. En mi laboratorio solo es verdadero lo que resiste la duda. Resuelve mis acertijos con claridad y método.',
+ clase:['Duda metódica: dudar de todo hasta encontrar algo indudable.','Cogito, ergo sum: si pienso, existo. Es la primera certeza.','Método: aceptar solo lo evidente, dividir los problemas, ordenar las ideas y revisarlo todo.'],
+ takeaway:'Ser humano es pensar con razón crítica y autonomía.',
+ qs:[['ACERTIJO 1: Dudo de mis sentidos, de los sueños y del mundo, pero al dudar descubro algo seguro. ¿Qué método uso?',['La duda metódica','La fe ciega','La costumbre'],'Descartes duda de todo para hallar una certeza indudable.'],
+     ['ACERTIJO 2: Todos la poseemos por igual y con ella ordeno mis ideas. ¿Qué soy?',['La razón','El azar','La tradición'],'Para Descartes la razón es lo mejor repartido entre los seres humanos.'],
+     ['ACERTIJO 3: Piensa por ti mismo, sin tutores que decidan por ti. ¿Qué valor es?',['Autonomía','Obediencia','Dependencia'],'La autonomía es pensar y decidir por cuenta propia.'],
+     ['ACERTIJO 4: «Pienso, luego existo». ¿Qué certeza descubrí?',['El cogito','La sensación','El rumor'],'El cogito es la primera verdad: si pienso, existo.'],
+     ['ACERTIJO 5: No acepto nada sin examinar sus fundamentos. ¿Qué actitud es?',['Conocimiento crítico','Prejuicio','Dogma'],'El pensamiento crítico examina antes de aceptar.']]},
+{id:4,name:'NIETZSCHE',bg:'nietzsche',badge:'libertad',BN:'Insignia de la Libertad',place:'ENTRENADOR ERRANTE · EDAD CONTEMPORÁNEA',
+ arte:'El pensador (Rodin, 1880-1904)',musica:'Also sprach Zarathustra (Strauss, 1896)',url:'https://www.youtube.com/watch?v=GfwAPg4rQQE',
+ frase:'«Dios ha muerto». (Nietzsche, La gaya ciencia, §125, 1882)',
+ intro:'Soy Nietzsche, el entrenador errante. Esconderé los valores tras unas fichas: memoriza dónde queda cada uno y luego descubre cuál responde a mi reto.',
+ clase:['«Dios ha muerto» es un diagnóstico: los valores tradicionales ya no sostienen a la sociedad europea.','Nietzsche invita a revisar con espíritu crítico los valores heredados.','Libertad con responsabilidad: asumir quién eres y responder por lo que haces.'],
+ takeaway:'Ser humano es ejercer la libertad con responsabilidad y revisar los propios valores.',
+ tiles:true,
+ qs:[['Nietzsche te reta a elegir tu propio camino en lugar de seguir al rebaño. ¿Qué ficha lo esconde?',['Libertad','Obediencia','Azar','Miedo'],'La libertad es elegir y asumir tu propio camino.'],
+     ['Tras «Dios ha muerto», hay que revisar con espíritu crítico lo que llamamos bueno y malo. ¿Qué ficha lo esconde?',['Valores','Moda','Rumor','Capricho'],'Los valores orientan la vida; Nietzsche invita a revisarlos críticamente.'],
+     ['«Llega a ser el que eres» (La gaya ciencia, §270): constrúyete tú, no aceptes lo que otros dicen que eres. ¿Qué ficha lo esconde?',['Identidad','Máscara','Multitud','Etiqueta'],'La identidad se construye; no es una etiqueta impuesta.'],
+     ['Antes de aceptar lo que «siempre se ha hecho así», detente a examinarlo. ¿Qué ficha lo esconde?',['Reflexión','Impulso','Prisa','Costumbre'],'La reflexión examina lo que damos por hecho.'],
+     ['El individuo soberano tiene el «privilegio» de responder por sus actos (Genealogía de la moral II, §2). ¿Qué ficha lo esconde?',['Responsabilidad','Culpa ajena','Excusa','Indiferencia'],'Ser libre implica responder por los propios actos.']]}
+];
+const ICON_NAME={cruz:'la Cruz',dado:'el Dado',moneda:'la Moneda',bombilla:'la Bombilla',espada:'la Espada',corona:'la Corona',libro:'el Libro',vela:'la Vela',fabrica:'la Fábrica',catedral:'la Catedral'};
+const REFL=['1. Después de recorrer la Liga: ¿qué es el ser humano para ti?',
+ '2. ¿Qué te enseñó Sócrates sobre la virtud y el examen de la propia vida? ¿Y qué aportan la fe y la razón de Tomás de Aquino?',
+ '3. ¿Qué significan para ti la razón crítica de Descartes y la libertad responsable de Nietzsche?',
+ '4. Lyotard habló de la incredulidad hacia los metarrelatos. ¿Cómo influye la posmodernidad en tu identidad hoy?'];
+
+const done=[false,false,false,false];
+let answers=['','','',''];
+let manif='',player='';
+
+/* ---------------- PROGRESO GUARDADO (sobrevive a recargar la página) ---------------- */
+const SAVE='genesis_pensamiento_v1';
+function save(){try{localStorage.setItem(SAVE,JSON.stringify({done,answers,manif,player}))}catch(e){}}
+function load(){try{const s=JSON.parse(localStorage.getItem(SAVE)||'null');if(!s)return;
+  if(Array.isArray(s.done))s.done.slice(0,4).forEach((v,i)=>done[i]=!!v);
+  if(Array.isArray(s.answers))answers=[0,1,2,3].map(i=>String(s.answers[i]||''));
+  manif=String(s.manif||'');player=String(s.player||'')}catch(e){}}
+function wipe(){done.fill(false);answers=['','','',''];manif='';player='';try{localStorage.removeItem(SAVE)}catch(e){}}
+function hasProgress(){return done.some(Boolean)||answers.some(Boolean)||!!manif}
+/* texto completo para copiar o descargar: reflexiones + manifiesto */
+function fullText(){
+  const lines=['GÉNESIS DEL PENSAMIENTO — Mi recorrido por la Liga','Nombre: '+(player.trim()||'(sin nombre)'),'Fecha: '+new Date().toLocaleDateString('es-MX'),'','REFLEXIONES'];
+  REFL.forEach((q,i)=>lines.push('',q,(answers[i].trim()||'(sin respuesta)')));
+  lines.push('','MANIFIESTO DEL SER','',manif.trim()||'(sin escribir)');
+  return lines.join('\n');
+}
+
+/* ---------------------------- MOTOR ---------------------------- */
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a}
+function stop(){clearInterval(tmr);tmr=null}
+function scene(bg,cls){stop();H.a=H.b=H.mv=H.num=H.start=null;scr.innerHTML='';scr.className='';scr.style.backgroundImage=bg?`url(${A[bg]})`:'none';if(cls)scr.className=cls}
+function L(html){scr.insertAdjacentHTML('beforeend',html);return scr.lastElementChild}
+function img(k,cls,st){return `<img class="${cls||''}" style="${st||''}" src="${A[k]}" alt="">`}
+/* ¿cabe el texto en el cuadro? (mide con el texto completo ya escrito) */
+function fitsBox(b,tx){const pb=parseFloat(getComputedStyle(b).paddingBottom)||0;return tx.offsetTop+tx.offsetHeight<=b.clientHeight-pb*.4}
+/* reparte un texto largo en varias páginas que quepan en el cuadro de diálogo */
+function pages(text,opt={}){
+  const b=L(`<div class="dlg ${opt.cls||''}" style="visibility:hidden">${opt.title?`<div class="tag">${opt.title}</div>`:''}<div class="tx"></div></div>`);
+  const tx=b.querySelector('.tx');
+  const fits=s=>{tx.textContent=s;return fitsBox(b,tx)};
+  if(!b.clientHeight||fits(text)){b.remove();return[text]}
+  const out=[];let cur='';
+  for(const w of text.match(/\S+\s*/g)||[]){if(cur&&!fits(cur+w)){out.push(cur.trim());cur=w}else cur+=w}
+  if(cur.trim())out.push(cur.trim());
+  b.remove();return out;
+}
+/* protege contra clics/Enter repetidos: primero termina de escribir el texto y
+   espera un instante antes de aceptar la acción (evita contestar sin querer) */
+function tap(fn,wait=400){const born=Date.now();return()=>{const d=scr.querySelector('.dlg');if(d&&!d._full){d._skip();return}if(Date.now()-born<wait)return;fn()}}
+function typeBox(text,opt={}){
+  scr.querySelectorAll('.dlg').forEach(e=>e.remove());
+  const b=L(`<div class="dlg ${opt.cls||''}">${opt.title?`<div class="tag">${opt.title}</div>`:''}<div class="tx"></div><div class="arrow" style="visibility:hidden">▼</div></div>`);
+  const tx=b.querySelector('.tx'),ar=b.querySelector('.arrow');let n=0;
+  // si el texto no cabe (p. ej. una pregunta larga), se reduce la letra hasta que quepa
+  tx.textContent=text;let fs=1.4;while(fs>.95&&b.clientHeight&&!fitsBox(b,tx)){fs-=.05;tx.style.fontSize=fs+'cqw'}tx.textContent='';
+  const t=setInterval(()=>{n++;tx.textContent=text.slice(0,n);if(n>=text.length){clearInterval(t);b._full=true;ar.style.visibility='visible'}},14);
+  b._t=t;b._skip=()=>{clearInterval(t);tx.textContent=text;b._full=true;ar.style.visibility='visible'};
+  return b;
+}
+function say(lines,cb,opt={}){
+  if(typeof lines==='string')lines=[lines];
+  lines=lines.flatMap(l=>pages(l,opt));let i=0;let b;
+  const show=()=>{b=typeBox(lines[i],opt)};
+  show();
+  H.mv=null;H.num=null;H.b=null;
+  H.a=()=>{if(!b._full){b._skip();return}i++;if(i>=lines.length){H.a=null;if(opt.keep!==true)b.remove();cb&&cb()}else show()};
+}
+function menu(items,cls,onPick,opt={}){
+  const m=L(`<div class="menu ${cls}"></div>`);let cur=opt.start||0;const els=[];
+  items.forEach((it,i)=>{const e=document.createElement('div');e.className='it '+(it.cls||'');e.innerHTML=it.html;e.dataset.i=i;if(it.off)e.classList.add('off');m.appendChild(e);els.push(e);
+    e.addEventListener('mouseenter',()=>{if(!it.off)setCur(i)});e.addEventListener('click',ev=>{ev.stopPropagation();pick(i)})});
+  function setCur(i){cur=i;els.forEach((e,j)=>e.classList.toggle('sel',j===i))}
+  function pick(i){const it=items[i];if(it.off)return;setCur(i);onPick(i,api)}
+  function move(d){let n=cur;for(let k=0;k<items.length;k++){n=(n+d+items.length)%items.length;if(!items[n].off){setCur(n);return}}}
+  const api={els,items,setHtml(i,h){els[i].innerHTML=h},off(i){items[i].off=true;els[i].classList.add('off')},el:m,remove(){m.remove()},cur:()=>cur};
+  H.a=tap(()=>pick(cur));H.b=null;
+  H.mv=(dx,dy)=>{const d=(cls.includes('opts')&&!opt.iconlist)?(dx||dy*2):(dx||dy);move(d>0?1:-1)};
+  H.num=n=>{if(n>=1&&n<=items.length)pick(n-1)};
+  const first=items.findIndex(i=>!i.off);setCur(opt.start??Math.max(0,first));
+  return api;
+}
+function bar(f){return f>.5?'':(f>.25?'y':'r')}
+function setBar(el,f){const u=el.querySelector('u');u.style.width=(f*100)+'%';u.className=bar(f)}
+function badgesTop(){return `<div class="badges top">${G.map((g,i)=>img('b_'+g.badge+(done[i]?'':'_off'))).join('')}</div>`}
+
+/* ---------------------------- ESCENAS ---------------------------- */
+function title(){
+  scene('bg_title');
+  L(`<div class="ctr title">GÉNESIS DEL<br>PENSAMIENTO</div>`);
+  L(`<div class="ctr sub">LA LIGA DE LA REGIÓN FILOSÓFICA</div>`);
+  L(img('sp_alex','',`position:absolute;left:12%;bottom:12%;height:24cqw;z-index:3`));
+  L(img('sp_leonel','',`position:absolute;right:12%;bottom:12%;height:16cqw;z-index:3`));
+  L(`<div class="ctr press">▶ PRESIONA START O HAZ CLIC</div>`);
+  L(`<div class="ctr" style="bottom:2%;font-size:.95cqw;color:#fff">Humanismo Clásico y Contemporáneo · Universidad Anáhuac Mayab · Equipo 4</div>`);
+  H.a=H.start=()=>{
+    if(!hasProgress())return oak(0);
+    H.start=null;scr.querySelector('.press')?.remove();
+    typeBox('Tienes una partida guardada en este navegador. ¿Qué quieres hacer?',{title:'PARTIDA GUARDADA'});
+    menu([{html:'Continuar partida'},{html:'Nueva partida'}],'yn',(i,m)=>{
+      m.remove();
+      if(i===0){const n=done.indexOf(false);map(n<0?4:n)}
+      else confirmWipe(()=>oak(0),title);
+    });
+  };
+}
+/* pide confirmación antes de borrar todo (insignias, reflexiones y manifiesto) */
+function confirmWipe(yes,no){
+  typeBox('¿Seguro? Se borrarán tus insignias, tus reflexiones y tu manifiesto. Si quieres conservarlos, cópialos o descárgalos antes.',{title:'ATENCIÓN'});
+  menu([{html:'No, volver'},{html:'Sí, borrar todo'}],'yn',(i,m)=>{m.remove();if(i===1){wipe();yes()}else no()});
+}
+function oakScene(){scene('bg_lab');L(img('sp_prof','',`position:absolute;left:26%;top:20%;height:30cqw;z-index:3`));L(img('sp_alex','',`position:absolute;left:52%;top:26%;height:26cqw;z-index:3`));L(img('sp_leonel','',`position:absolute;left:72%;top:42%;height:15cqw;z-index:3`))}
+function oak(step){
+  oakScene();
+  const T='PROFESOR OAK';
+  if(step===0)say(['¡Hola, Alex! Bienvenido al laboratorio. Soy el Profesor Oak y estudio algo más grande que cualquier criatura: el ser humano.','Esta región es la Liga de la Región Filosófica. Para recorrerla, Leonel y tú deberán responder una pregunta que ha acompañado a la humanidad durante siglos: ¿QUÉ ES EL HOMBRE?','Te entregaré el Pokédex del Ser. Se llenará con las 4 insignias que ganes: Virtud, Sentido, Razón y Libertad. ¿Aceptas el desafío, Alex?'],()=>oak(1),{title:T,keep:true});
+  else if(step===1||step===2){
+    if(step===2)typeBox('No hay prisa, Alex. Piensa en la pregunta: ¿qué es el hombre? Cuando estés listo, responde.',{title:T});else typeBox('¿Aceptas el desafío, Alex?',{title:T});
+    menu([{html:'¡Por supuesto!'},{html:'Todavía no estoy listo'}],'yn',i=>{i===0?oak(3):oak(2)});
+  } else if(step===3)say(['¡Excelente! Aquí tienes el Pokédex del Ser. Aún está vacío: cada insignia revelará una parte de la respuesta.','Cada líder de gimnasio representa una época. Escucha su lección, pelea con tus respuestas y gana su insignia. ¡Si fallas, aprenderás con la pista y podrás elegir otra opción!'],()=>map(0),{title:T});
+}
+function map(start){
+  scene('bg_dex');
+  L(`<div class="ctr" style="top:5%;font-size:2.2cqw;color:#ffd24a">MAPA DE LA LIGA</div>`);
+  L(badgesTop());
+  const all=done.every(Boolean);
+  const items=G.map((g,i)=>{const ok=i===0||done[i-1];return{html:`${done[i]?'✔ ':''}${i+1}. ${g.name}<small>${g.place}${ok?'':' · 🔒 gana la insignia anterior'}</small>`,cls:ok?'':'lock',off:!ok}});
+  items.push({html:`5. MUNDO DISTORSIÓN<small>POSMODERNIDAD${all?'':' · 🔒 necesitas las 4 insignias'}</small>`,cls:all?'':'lock',off:!all});
+  typeBox('¿A dónde quieres ir, Alex? Los gimnasios se desbloquean en orden. Puedes repetir los que ya ganaste.',{title:'MAPA'});
+  menu(items,'list',(i)=>{i<4?gymIntro(i):glitch()},{start:Math.min(start,items.length-1)});
+}
+function gymIntro(k){
+  const g=G[k];scene(g.bg);
+  L(`<div class="ctr" style="top:4%;font-size:1.3cqw;color:#fff">${g.place}</div>`);
+  L(badgesTop());
+  say([`¡${g.name} quiere luchar!`,g.intro],()=>ficha(k),{title:g.name,keep:true});
+}
+function ficha(k){
+  const g=G[k];scene(g.bg);
+  L(`<div class="card"><h3>FICHA DE LA ÉPOCA</h3><p><span class="k">ARTE:</span> ${g.arte}</p><p><span class="k">MÚSICA:</span> ${g.musica} — <a href="${g.url}" target="_blank" rel="noopener">▶ escuchar</a></p><p><span class="k">FRASE:</span> ${g.frase}</p></div>`);
+  typeBox('Este es el mundo de '+g.name+'. Escucha su música (se abre en una pestaña nueva) y lee su frase. ▼ para la lección.',{title:'DATO'});
+  H.a=tap(()=>clase(k));
+}
+function clase(k){
+  const g=G[k];scene(g.bg);
+  L(`<div class="card"><h3>CLASE RÁPIDA · ${g.name}</h3><ul>${g.clase.map(t=>`<li>${t}</li>`).join('')}</ul></div>`);
+  typeBox('Memoriza lo esencial: te servirá en el combate. ▼ para pelear.',{title:'LECCIÓN'});
+  H.a=tap(()=>battle(k));
+}
+function battle(k){
+  const g=G[k];
+  const st={q:0,hp:5,foe:5,first:0,wq:0};
+  const hud=()=>{scene(g.bg,'');
+    L(`<div class="hud foe"><div class="nm">${g.name}<span>Nv.100</span></div><div class="hp"><b>PS</b><i><u style="width:${st.foe/5*100}%" class="${bar(st.foe/5)}"></u></i></div></div>`);
+    L(`<div class="hud me"><div class="nm">ALEX<span>ÁNIMO</span></div><div class="hp"><b>PS</b><i><u style="width:${st.hp/5*100}%" class="${bar(st.hp/5)}"></u></i></div><div class="num">${st.hp}/5</div></div>`);
+    L(img('sp_alex','pl'));
+    L(`<div class="qn">RETO ${st.q+1}/5</div>`);};
+  const upd=()=>{const f=scr.querySelector('.hud.foe'),m=scr.querySelector('.hud.me');setBar(f,st.foe/5);setBar(m,st.hp/5);m.querySelector('.num').textContent=st.hp+'/5'};
+  let M=null;
+  const box=g.tiles?'big':'';   // en Nietzsche no hay menú abajo a la derecha: el cuadro usa todo el ancho
+  function ask(first){
+    if(M){M.el.remove();M=null}   // quita el menú anterior para que no se acumulen
+    const q=g.qs[st.q];
+    let opts=q[1].map((t,i)=>({t,ok:g.correct?g.correct[st.q]===i:i===0}));
+    if(!st._o||first){st._o=shuffle(opts)}
+    if(g.tiles){
+      M=menu(st._o.map(o=>({html:'<span class="qm">?</span>',off:o.dead})),'tiles',pick);
+      M.els.forEach((e,i)=>{e.className='tile';e.style.left=['1.5%','15.5%','71.5%','85.5%'][i]});
+      M.els.forEach((e,i)=>{if(st._o[i].dead){e.classList.add(st._o[i].ok?'good':'bad');e.innerHTML=st._o[i].t}});
+      M.el.style.pointerEvents='none';M.els.forEach(e=>e.style.pointerEvents='auto');
+      let cur=Math.max(0,st._o.findIndex(o=>!o.dead));
+      const setc=()=>M.els.forEach((e,i)=>e.classList.toggle('sel',!st.peek&&i===cur));
+      M.els.forEach((e,i)=>e.addEventListener('mouseenter',()=>{if(!st.peek&&!st._o[i].dead){cur=i;setc()}}));
+      const play=()=>{   // fichas boca abajo: ahora se responde el reto
+        stop();st.peek=false;
+        M.els.forEach((e,i)=>{e.classList.remove('peek');if(!st._o[i].dead)e.innerHTML='<span class="qm">?</span>'});
+        typeBox(q[0],{title:g.name,cls:box});setc();
+        H.mv=(dx,dy)=>{const d=dx||dy;if(!d)return;do{cur=(cur+(d>0?1:-1)+4)%4}while(st._o[cur].dead);setc()};
+        H.a=tap(()=>pick(cur));
+        H.num=n=>{if(n>=1&&n<=4)pick(n-1)};
+      };
+      if(first){   // al empezar cada reto las fichas se ven unos segundos: hay que memorizarlas
+        st.peek=true;H.mv=H.num=null;setc();
+        M.els.forEach((e,i)=>{e.classList.add('peek');e.innerHTML=st._o[i].t});
+        typeBox('¡Memoriza dónde queda cada valor! Las fichas se darán la vuelta en unos segundos… (pulsa A para empezar ya)',{title:g.name,cls:box});
+        H.a=tap(play,700);
+        tmr=setTimeout(play,4500);
+      }else play();
+    }else{
+      typeBox(q[0],{title:g.name});
+      const items=st._o.map(o=>g.icon?{html:img('i_'+o.t),cls:'ico',off:o.dead}:{html:o.t,off:o.dead});
+      M=menu(items,'opts'+(g.icon?' icons':''),pick,{iconlist:false});
+    }
+  }
+  function freeze(){M.el.style.pointerEvents='none';M.els.forEach(e=>e.style.pointerEvents='none')}
+  function pick(i){
+    if(st.peek)return;
+    const o=st._o[i];if(!o||o.dead)return;
+    const q=g.qs[st.q];
+    H.a=H.mv=H.num=null;
+    if(o.ok){
+      if(st.wq===0)st.first++;
+      o.dead=true;
+      st.foe--;upd();scr.querySelector('.hud.foe').classList.add('flash');
+      if(g.tiles){M.els[i].classList.add('good');M.els[i].innerHTML=o.t;freeze()}else{M.el.remove();M=null}
+      say(['¡CORRECTO! '+q[2]],()=>{
+        st.q++;st.wq=0;st._o=null;
+        if(st.q>=5)win();else{hud();M=null;ask(true)}
+      },{title:g.name,keep:false,cls:box});
+    }else{
+      o.dead=true;st.wq++;st.hp--;
+      if(g.tiles){M.els[i].classList.add('bad');M.els[i].innerHTML=o.t}else M.off(i);
+      freeze();
+      upd();scr.querySelector('.hud.me').classList.add('shake');
+      let msg;
+      if(g.icon)msg=`Esa es ${ICON_NAME[o.t]}. Alex pierde 1 de ánimo. Piensa en lo que representaba en la Edad Media y elige otra imagen.`;
+      else if(g.tiles)msg=`Esa ficha escondía «${o.t}». Alex pierde 1 de ánimo. ¡Sigue buscando!`;
+      else msg='Esa no es. Alex pierde 1 de ánimo. Lee la pregunta otra vez y elige otra opción.';
+      const lines=[msg];
+      if(st.wq>=2)lines.push('PISTA: '+q[2]);   // la pista va en su propia página para que se lea completa
+      let faint=false;
+      if(st.hp<=0){faint=true;st.hp=5;lines.push('Alex está agotado… Pero el Profesor Oak le da una Poción de Ideas. ¡Ánimo restaurado! Sin castigo: lo importante es aprender.')}
+      say(lines,()=>{if(faint)upd();ask(false)},{title:'¡UPS!',keep:false,cls:box});
+    }
+  }
+  function win(){
+    done[k]=true;save();
+    scene(g.bg);L(`<div class="hud foe"><div class="nm">${g.name}<span>Nv.100</span></div><div class="hp"><b>PS</b><i><u style="width:0%" class="r"></u></i></div></div>`);
+    say([`¡Has derrotado a ${g.name}!`,`${g.name}: «Has aprendido bien. Toma tu insignia.»`],()=>badge(k,st.first),{title:'¡VICTORIA!'});
+  }
+  hud();ask(true);
+}
+function badge(k,first){
+  const g=G[k];scene('bg_final');L('<div class="stars"></div>');
+  L(img('b_'+g.badge,'badgeBig'));
+  say([`¡Felicidades, Alex! Has obtenido la ${g.BN}. Sumas ${done.filter(Boolean).length} de 4 insignias para tu Pokédex del Ser.`,`Respondiste ${first} de 5 retos a la primera. ${first===5?'¡Perfecto!':first>=3?'¡Muy bien!':'Repite el gimnasio cuando quieras: repasar también es aprender.'}`,`Lo que aprendiste: ${g.takeaway}`],()=>map(Math.min(k+1,4)),{title:'INSIGNIA'});
+}
+function glitch(){
+  scene('bg_distorsion','glitch');
+  say(['¡Un glitch! El Mundo Distorsión (Posmodernidad) aparece. Las certezas se desvanecen…','Aquí ya no hay una sola gran historia que lo explique todo. Jean-François Lyotard la llamó «incredulidad con respecto a los metarrelatos» (La condición posmoderna, 1979).','Arte: Marilyn Diptych (Warhol, 1962), arte pop de la cultura de masas. Música: «Everything in Its Right Place» (Radiohead, 2000).','¡Alex, solo con tus 4 insignias puedes entrar al Pokédex del Ser!'],()=>dex(),{title:'MUNDO DISTORSIÓN'});
+}
+function dex(){
+  scene('bg_dex');
+  L(`<div class="ctr" style="top:6%;font-size:3cqw;color:#fff">POKÉDEX DEL SER</div>`);
+  const nm=['VIRTUD','SENTIDO','RAZÓN','LIBERTAD'];
+  G.forEach((g,i)=>{L(img('b_'+g.badge,'',`position:absolute;left:${15+i*18}%;top:22%;width:12cqw;height:12cqw;z-index:3`));L(`<div class="ctr" style="left:${15+i*18-3}%;width:18%;right:auto;top:48%;font-size:1.5cqw;color:#ffd24a">${nm[i]}</div>`)});
+  L(`<div class="ctr" style="top:60%;font-size:2.4cqw;color:#fff">¿QUÉ SIGNIFICA SER HUMANO?</div>`);
+  say(['Las 4 insignias desbloquean la actividad reflexiva final. Esta actividad no se califica: es para pensar.'],()=>refl(0),{title:'POKÉDEX DEL SER'});
+}
+function refl(i){
+  scene('bg_distorsion','');
+  const f=L(`<div class="form"><h3>REFLEXIÓN (no se califica) · ${i+1}/4</h3><p>${REFL[i]}</p>${i===3?'<p class="note">«La incredulidad con respecto a los metarrelatos» (Lyotard, 1979)</p>':''}<textarea placeholder="Escribe aquí tu reflexión…"></textarea><div class="btns"><span class="note" style="align-self:center;margin-right:auto">Se guarda solo ✔</span>${i>0?'<button class="btn alt" id="bp">◀ Atrás</button>':''}<button class="btn" id="bn">${i<3?'Siguiente ▶':'Ir al manifiesto ▶'}</button></div></div>`);
+  const ta=f.querySelector('textarea');ta.value=answers[i];
+  ta.addEventListener('input',()=>{answers[i]=ta.value;save()});
+  f.querySelector('#bn').onclick=()=>{answers[i]=ta.value;save();i<3?refl(i+1):manifest()};
+  const bp=f.querySelector('#bp');if(bp)bp.onclick=()=>{answers[i]=ta.value;save();refl(i-1)};
+  H.a=null;
+}
+function manifest(){
+  scene('bg_dex');
+  const f=L(`<div class="form"><h3>MANIFIESTO DEL SER</h3><p>Escribe 3 a 5 líneas que respondan «¿Qué significa ser humano?» con lo aprendido en las 4 misiones. «Copiar» y «Descargar» incluyen también tus 4 reflexiones.</p><input id="pn" maxlength="60" placeholder="Tu nombre (para firmar)"><textarea id="mf" placeholder="Para mí, ser humano significa…"></textarea><div class="btns"><span class="note" id="cp" style="align-self:center;margin-right:auto">Se guarda solo ✔</span><button class="btn alt" id="bc">Copiar todo</button><button class="btn alt" id="bd">Descargar .txt</button><button class="btn" id="bf">Finalizar ▶</button></div></div>`);
+  const ta=f.querySelector('#mf'),pn=f.querySelector('#pn'),cp=f.querySelector('#cp');
+  ta.value=manif;pn.value=player;
+  ta.addEventListener('input',()=>{manif=ta.value;save()});
+  pn.addEventListener('input',()=>{player=pn.value;save()});
+  f.querySelector('#bc').onclick=()=>copyText(fullText(),cp);
+  f.querySelector('#bd').onclick=()=>{download(fullText());cp.textContent='¡Descargado!'};
+  f.querySelector('#bf').onclick=()=>final();
+}
+function copyText(t,msg){
+  const fallback=()=>{const x=document.createElement('textarea');x.value=t;x.style.cssText='position:fixed;left:-9999px;opacity:0';document.body.appendChild(x);x.select();let ok=false;try{ok=document.execCommand('copy')}catch(e){}x.remove();msg.textContent=ok?'¡Copiado!':'No se pudo copiar: usa «Descargar .txt»'};
+  try{navigator.clipboard.writeText(t).then(()=>{msg.textContent='¡Copiado!'},fallback)}catch(e){fallback()}
+}
+function download(t){
+  const name=player.trim().replace(/[^\p{L}\p{N}]+/gu,'_').replace(/^_+|_+$/g,'');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/plain;charset=utf-8'}));
+  a.download='Manifiesto_del_Ser'+(name?'_'+name:'')+'.txt';
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+}
+function final(){
+  scene('bg_final');L('<div class="stars"></div>');
+  L(`<div class="ctr" style="top:6%;font-size:3.6cqw;color:#ffd24a">¡FELICIDADES, ALEX!</div>`);
+  G.forEach((g,i)=>L(img('b_'+g.badge,'',`position:absolute;left:${14+i*18}%;top:24%;width:13cqw;height:13cqw;z-index:3;animation:pop .8s steps(8)`)));
+  say(['Has completado la Liga de la Región Filosófica. Descubriste que ser humano implica pensar, cuestionar, buscar sentido, actuar con virtud y ejercer responsablemente la libertad.','¡ERES EL CAMPEÓN DE LA REGIÓN FILOSÓFICA!'],finalMenu,{title:'CAMPEÓN',keep:true});
+}
+function finalMenu(){
+  typeBox('¿Qué quieres hacer ahora?',{title:'CAMPEÓN'});
+  menu([{html:'Ver mi manifiesto'},{html:'Jugar de nuevo ↺'}],'yn',(i,m)=>{
+    if(i===0)return manifest();
+    m.remove();confirmWipe(title,finalMenu);
+  });
+}
+
+/* ---------------------------- ENTRADAS ---------------------------- */
+scr.addEventListener('click',e=>{
+  if(e.target.closest('.it,.tile,a,textarea,input,button'))return;
+  // si hay opciones en pantalla, un clic en el fondo NO elige nada: solo termina de escribir el texto
+  if(scr.querySelector('.menu')){const d=scr.querySelector('.dlg');if(d&&!d._full)d._skip();return}
+  H.a&&H.a();
+});
+function key(k){
+  if(k==='a')H.a&&H.a();else if(k==='b')H.b&&H.b();else if(k==='start')H.start?H.start():(H.a&&scr.querySelector('.press')&&H.a());
+  else if(k==='u')H.mv&&H.mv(0,-1);else if(k==='d')H.mv&&H.mv(0,1);else if(k==='l')H.mv&&H.mv(-1,0);else if(k==='r')H.mv&&H.mv(1,0);
+}
+document.querySelectorAll('[data-k]').forEach(b=>b.addEventListener('click',()=>key(b.dataset.k)));
+addEventListener('keydown',e=>{
+  if(/TEXTAREA|INPUT/.test(e.target.tagName))return;
+  const m={Enter:'a',' ':'a',z:'a',Z:'a',Escape:'b',x:'b',X:'b',Backspace:'b',ArrowUp:'u',ArrowDown:'d',ArrowLeft:'l',ArrowRight:'r'}[e.key];
+  if(m){e.preventDefault();key(m)}else if(/^[1-9]$/.test(e.key)&&H.num)H.num(+e.key);
+});
+load();
+title();
+</script>
+</body>
+</html>
