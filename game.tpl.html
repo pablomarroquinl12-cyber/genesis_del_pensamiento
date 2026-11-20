@@ -135,7 +135,7 @@ body{min-height:100vh;display:flex;flex-direction:column;align-items:center;just
   <div class="bezel"><div id="screen" tabindex="0"></div></div>
   <div class="controls">
     <div class="dpad"><button class="u" data-k="u">▲</button><button class="l" data-k="l">◀</button><button class="c"></button><button class="r" data-k="r">▶</button><button class="d" data-k="d">▼</button></div>
-    <div class="mid"><button data-k="sel">SELECT</button><button data-k="start">START</button></div>
+    <div class="mid"><button data-k="mute">🔊 SONIDO</button><button data-k="sel">SELECT</button><button data-k="start">START</button></div>
     <div class="ab"><button class="b" data-k="b">B</button><button class="a" data-k="a">A</button></div>
   </div>
 </div>
@@ -145,6 +145,10 @@ body{min-height:100vh;display:flex;flex-direction:column;align-items:center;just
 /*ASSETS*/
 const $=s=>document.querySelector(s);
 const scr=$('#screen');
+const MUS={1:'audio/socrates.mp3',2:'audio/tomas.mp3',3:'audio/descartes.mp3',4:'audio/nietzsche.mp3'};
+const aud=new Audio();aud.loop=true;aud.volume=.35;let muted=false,curM=0;
+function music(k){if(k===curM)return;curM=k;if(!k){aud.pause();return}aud.src=MUS[k];if(!muted)aud.play().catch(()=>{})}
+function toggleMute(){muted=!muted;const b=document.querySelector('[data-k=mute]');b.textContent=muted?'🔇 SONIDO':'🔊 SONIDO';if(muted)aud.pause();else if(curM)aud.play().catch(()=>{})}
 const H={a:null,b:null,mv:null,num:null,start:null};
 let tmr=null;
 
@@ -288,7 +292,7 @@ function badgesTop(){return `<div class="badges top">${G.map((g,i)=>img('b_'+g.b
 
 /* ---------------------------- ESCENAS ---------------------------- */
 function title(){
-  scene('bg_title');
+  music(0);scene('bg_title');
   L(`<div class="ctr title">GÉNESIS DEL<br>PENSAMIENTO</div>`);
   L(`<div class="ctr sub">LA LIGA DE LA REGIÓN FILOSÓFICA</div>`);
   L(img('sp_alex','',`position:absolute;left:12%;bottom:12%;height:24cqw;z-index:3`));
@@ -322,7 +326,7 @@ function oak(step){
   } else if(step===3)say(['¡Excelente! Aquí tienes el Pokédex del Ser. Aún está vacío: cada insignia revelará una parte de la respuesta.','Cada líder de gimnasio representa una época. Escucha su lección, pelea con tus respuestas y gana su insignia. ¡Si fallas, aprenderás con la pista y podrás elegir otra opción!'],()=>map(0),{title:T});
 }
 function map(start){
-  scene('bg_dex');
+  music(0);scene('bg_dex');
   L(`<div class="ctr" style="top:5%;font-size:2.2cqw;color:#ffd24a">MAPA DE LA LIGA</div>`);
   L(badgesTop());
   const all=done.every(Boolean);
@@ -332,7 +336,7 @@ function map(start){
   menu(items,'list',(i)=>{i<4?gymIntro(i):glitch()},{start:Math.min(start,items.length-1)});
 }
 function gymIntro(k){
-  const g=G[k];scene(g.bg);
+  const g=G[k];music(k+1);scene(g.bg);
   L(`<div class="ctr" style="top:4%;font-size:1.3cqw;color:#fff">${g.place}</div>`);
   L(badgesTop());
   say([`¡${g.name} quiere luchar!`,g.intro],()=>ficha(k),{title:g.name,keep:true});
@@ -438,7 +442,7 @@ function badge(k,first){
   say([`¡Felicidades, Alex! Has obtenido la ${g.BN}. Sumas ${done.filter(Boolean).length} de 4 insignias para tu Pokédex del Ser.`,`Respondiste ${first} de 5 retos a la primera. ${first===5?'¡Perfecto!':first>=3?'¡Muy bien!':'Repite el gimnasio cuando quieras: repasar también es aprender.'}`,`Lo que aprendiste: ${g.takeaway}`],()=>map(Math.min(k+1,4)),{title:'INSIGNIA'});
 }
 function glitch(){
-  scene('bg_distorsion','glitch');
+  music(0);scene('bg_distorsion','glitch');
   say(['¡Un glitch! El Mundo Distorsión (Posmodernidad) aparece. Las certezas se desvanecen…','Aquí ya no hay una sola gran historia que lo explique todo. Jean-François Lyotard la llamó «incredulidad con respecto a los metarrelatos» (La condición posmoderna, 1979).','Arte: Marilyn Diptych (Warhol, 1962), arte pop de la cultura de masas. Música: «Everything in Its Right Place» (Radiohead, 2000).','¡Alex, solo con tus 4 insignias puedes entrar al Pokédex del Ser!'],()=>dex(),{title:'MUNDO DISTORSIÓN'});
 }
 function dex(){
@@ -501,7 +505,7 @@ scr.addEventListener('click',e=>{
   H.a&&H.a();
 });
 function key(k){
-  if(k==='a')H.a&&H.a();else if(k==='b')H.b&&H.b();else if(k==='start')H.start?H.start():(H.a&&scr.querySelector('.press')&&H.a());
+  if(k==='mute')toggleMute();else if(k==='a')H.a&&H.a();else if(k==='b')H.b&&H.b();else if(k==='start')H.start?H.start():(H.a&&scr.querySelector('.press')&&H.a());
   else if(k==='u')H.mv&&H.mv(0,-1);else if(k==='d')H.mv&&H.mv(0,1);else if(k==='l')H.mv&&H.mv(-1,0);else if(k==='r')H.mv&&H.mv(1,0);
 }
 document.querySelectorAll('[data-k]').forEach(b=>b.addEventListener('click',()=>key(b.dataset.k)));

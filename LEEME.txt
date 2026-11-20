@@ -8,6 +8,7 @@ ARCHIVOS
 - game.tpl.html ..... código fuente (HTML+CSS+JS). Aquí se editan preguntas, textos y estilo.
 - assets/ ........... sprites originales, insignias, íconos y fondos.
 - imagenes_epoca/ ... fondos de las 4 épocas (Sócrates, Tomás, Descartes, Nietzsche).
+- audio/ ............. música de cada gimnasio (socrates, tomas, descartes, nietzsche .mp3). Debe ir junto a index.html.
 - construir_juego.py  regenera index.html tras editar game.tpl.html o las imágenes.
                       Requisitos: Python 3 y Pillow (pip install pillow). Ejecutar: python construir_juego.py
 - herramientas_opcionales/ scripts con que se generaron las imágenes y la presentación (opcionales; tienen rutas de la máquina original).
