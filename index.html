@@ -24,6 +24,18 @@ body{min-height:100vh;display:flex;flex-direction:column;align-items:center;just
 .ab{display:flex;gap:16px;justify-content:flex-end;align-items:center}
 .ab button{width:58px;height:58px;border-radius:50%;border:0;background:#f0e6dc;color:#8f2010;font:bold 16px 'Press Start 2P',monospace;cursor:pointer;box-shadow:0 5px 0 #a08e80, inset 0 -4px 0 #d3c3b6}
 .ab .a{transform:translateY(-14px)}
+/* ---------- botones de la consola: brillan al pasar el cursor y se hunden al presionarlos ---------- */
+.dpad button,.mid button,.ab button{transition:transform .07s,box-shadow .07s,background-color .15s,color .15s;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+@media (hover:hover){   /* solo con ratón: en pantallas táctiles no hay "pasar por encima" */
+  .dpad button:not(.c):hover{background:#3e3e4c;color:#ffd24a;box-shadow:0 3px 0 #111,0 0 12px #ffd24a99}
+  .mid button:hover{background:#fff;color:#8f2010;box-shadow:0 3px 0 #8a8a98,0 0 12px #ffffffaa}
+  .ab button:hover{background:#fffaf2;color:#e0442a;box-shadow:0 5px 0 #a08e80,inset 0 -4px 0 #d3c3b6,0 0 16px #ffe2a8}
+}
+.dpad button:not(.c):active,.dpad button.pressed{transform:translateY(3px);box-shadow:0 0 0 #111;background:#24242c;color:#ffd24a}
+.mid button:active,.mid button.pressed{transform:rotate(-18deg) translateY(3px);box-shadow:0 0 0 #8a8a98}
+.ab button:active,.ab button.pressed{transform:translateY(5px);box-shadow:0 0 0 #a08e80,inset 0 3px 6px #0003}
+.ab .a:active,.ab .a.pressed{transform:translateY(-9px)}
+.dpad button:focus-visible,.mid button:focus-visible,.ab button:focus-visible{outline:2px solid #ffd24a;outline-offset:3px}
 .help{margin-top:14px;font-size:9px;line-height:1.9;color:#b9b9c8;text-align:center;max-width:900px}
 .help b{color:#ffd24a}
 .rot{display:none}
@@ -584,11 +596,19 @@ function key(k){
   else if(k==='u')H.mv&&H.mv(0,-1);else if(k==='d')H.mv&&H.mv(0,1);else if(k==='l')H.mv&&H.mv(-1,0);else if(k==='r')H.mv&&H.mv(1,0);
 }
 document.querySelectorAll('[data-k]').forEach(b=>b.addEventListener('click',()=>key(b.dataset.k)));
+const KEYS={Enter:'a',' ':'a',z:'a',Z:'a',Escape:'b',x:'b',X:'b',Backspace:'b',ArrowUp:'u',ArrowDown:'d',ArrowLeft:'l',ArrowRight:'r'};
+const typing=e=>e.target instanceof Element&&(/TEXTAREA|INPUT/.test(e.target.tagName)||!!e.target.closest('.form,a'));   // en formularios y enlaces, las teclas funcionan normal
 addEventListener('keydown',e=>{
-  if(/TEXTAREA|INPUT/.test(e.target.tagName)||e.target.closest('.form,a'))return;   // en formularios y enlaces, las teclas funcionan normal
-  const m={Enter:'a',' ':'a',z:'a',Z:'a',Escape:'b',x:'b',X:'b',Backspace:'b',ArrowUp:'u',ArrowDown:'d',ArrowLeft:'l',ArrowRight:'r'}[e.key];
+  if(typing(e))return;
+  const m=KEYS[e.key];
   if(m){e.preventDefault();key(m)}else if(/^[1-9]$/.test(e.key)&&H.num)H.num(+e.key);
 });
+/* al usar el teclado, el botón equivalente de la consola también se hunde (y se suelta al soltar la tecla) */
+const btnOf=e=>KEYS[e.key]&&document.querySelector(`.controls [data-k="${KEYS[e.key]}"]`);
+addEventListener('keydown',e=>{const b=!typing(e)&&btnOf(e);if(b)b.classList.add('pressed')});
+addEventListener('keyup',e=>{const b=btnOf(e);if(b)b.classList.remove('pressed')});
+addEventListener('blur',()=>document.querySelectorAll('.controls .pressed').forEach(b=>b.classList.remove('pressed')));
+document.addEventListener('touchstart',()=>{},{passive:true});   // hace que el efecto de "presionar" también se vea en iPhone
 load();save();   // prueba si este navegador permite guardar
 title();
 </script>
