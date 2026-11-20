@@ -162,7 +162,7 @@ body{min-height:100vh;display:flex;flex-direction:column;align-items:center;just
     <div class="ab"><button class="b" data-k="b">B</button><button class="a" data-k="a">A</button></div>
   </div>
 </div>
-<div class="help"><b>Cómo se juega:</b> haz clic en la pantalla o presiona <b>A</b> (tecla <b>X</b> o <b>Enter</b>) para continuar · <b>B</b> (tecla <b>Z</b> o <b>Esc</b>) para volver o cancelar · <b>SELECT / S</b> abre tus apuntes (en un gimnasio, su lección) · elige con el ratón o con <b>↑ ↓ ← →</b> y <b>Enter</b> · en los combates también sirven las teclas <b>1-4</b>.<br>Si te equivocas no pasa nada: pierdes un poco de ánimo, lees la pista y eliges otra opción. ¡Así se aprende!</div>
+<div class="help"><b>Cómo se juega:</b> haz clic en la pantalla o presiona <b>A</b> (tecla <b>X</b> o <b>Enter</b>) para continuar · <b>B</b> (tecla <b>Z</b> o <b>Esc</b>) para volver o cancelar · <b>SELECT / S</b> abre tus apuntes (en un gimnasio, su lección) · elige con el ratón o con <b>↑ ↓ ← →</b> y <b>Enter</b> · en los combates también sirven las teclas <b>1-4</b>.<br>Si te equivocas pierdes 1 de ánimo, lees la pista y eliges otra opción. ¡Cuidado! Si te quedas sin ánimo, es <b>GAME OVER</b> y tendrás que enfrentar de nuevo al líder.</div>
 
 <script>
 /*ASSETS*/
@@ -223,6 +223,7 @@ const SFX=(()=>{
     alerta:t=>seq(['B5','F5'],{w:'p12',step:.12,v:.15,gate:.95},t),                                                 // C · aviso descendente
     reto:t=>{seq(['E5','F5','E5','F5','E5','F5'],{w:'p25',step:.045,v:.14},t);tone({w:'p25',f:nm('B5'),t:.27,d:.38,v:.16,vib:[7,6],sus:.4},t);noise({f:900,t:.27,d:.15,v:.2},t)}, // A · trino de alarma
     correcto:t=>{tone({w:'sin',f:nm('E6'),d:.45,v:.25},t);tone({w:'sin',f:nm('B6'),t:.08,d:.5,v:.18},t)},          // B · campanita
+    derrota:t=>{seq(['E4','D4','C4','G3'],{w:'tri',step:.22,v:.28,sus:.7},t);tone({w:'sq',f:[200,60],t:.9,d:.5,v:.08},t)},       // GAME OVER
     incorrecto:t=>tone({w:'sq',f:[330,110],d:.3,v:.12},t),                                                          // A · bajón
     pocion:t=>{for(let i=0;i<6;i++)tone({w:'sin',f:[500+i*130,800+i*160],t:i*.06,d:.05,v:.2},t)},                   // C · burbujas
     voltear:t=>{noise({ft:'bandpass',f:3000,d:.05,v:.28,q:2},t);tone({w:'p12',f:1046,d:.04,v:.08},t)},              // A · carta
@@ -550,9 +551,9 @@ function battle(k){
       else msg='Esa no es. Alex pierde 1 de ánimo. Lee la pregunta otra vez y elige otra opción.';
       const lines=[msg];
       if(st.wq>=2)lines.push('PISTA: '+q[2]);   // la pista va en su propia página para que se lea completa
-      let faint=false;
-      if(st.hp<=0){faint=true;st.hp=5;lines.push('Alex está agotado… Pero el Profesor Oak le da una Poción de Ideas. ¡Ánimo restaurado! Sin castigo: lo importante es aprender.')}
-      say(lines,()=>{if(faint)upd();ask(false)},{title:'¡UPS!',keep:false,cls:box,onShow:l=>{if(faint&&/^Alex está agotado/.test(l))SFX.play('pocion')}});
+      let dead=false;
+      if(st.hp<=0){dead=true;lines.push('¡Alex se quedó sin ánimo!')}
+      say(lines,()=>{dead?gameOver(k):ask(false)},{title:'¡UPS!',keep:false,cls:box});
     }
   }
   function win(){
@@ -561,6 +562,14 @@ function battle(k){
     say([`¡Has derrotado a ${g.name}!`,`${g.name}: «Has aprendido bien. Toma tu insignia.»`],()=>badge(k,st.first),{title:'¡VICTORIA!'});
   }
   hud();ask(true);
+}
+function gameOver(k){
+  const g=G[k];scene(null);
+  L('<div style="position:absolute;inset:0;background:#000;z-index:1"></div>');
+  SFX.play('derrota');
+  L(`<div class="ctr" style="top:26%;font-size:6cqw;z-index:3;color:#e03a30;text-shadow:.5cqw .5cqw 0 #5a0d08">GAME OVER</div>`);
+  L(`<div class="ctr" style="top:52%;font-size:1.5cqw;z-index:3;color:#fff">${g.name} te ha derrotado</div>`);
+  say([`Alex ha sido derrotado por ${g.name}…`,'Un buen entrenador aprende de cada derrota. ¡Levántate y vuelve a intentarlo!',`¡${g.name} quiere luchar otra vez!`],()=>battle(k),{title:'GAME OVER'});
 }
 function badge(k,first){
   const g=G[k];scene('bg_final');SFX.play('insignia');L('<div class="stars"></div>');

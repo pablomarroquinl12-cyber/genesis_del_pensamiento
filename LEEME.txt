@@ -37,6 +37,6 @@ EFECTOS DE SONIDO (20/11/2026) — selección final, no se cambia
   Empezar: C (barrido brillante) · Texto escribiéndose: C (voz grave) · Pasar diálogo: A (tic agudo)
   Mover cursor: B (gota) · Elegir opción: A (dos notas) · Opción bloqueada: A (zumbido)
   Alerta de borrado: C (aviso descendente) · ¡El líder quiere luchar!: A (trino de alarma)
-  Respuesta correcta: B (campanita) · Respuesta incorrecta: A (bajón) · Poción de Ideas: C (burbujas)
+  Respuesta correcta: B (campanita) · Respuesta incorrecta: A (bajón) · Derrota (GAME OVER): descenso lento
   Fichas que se voltean: A (carta) · Victoria: A (fanfarria corta) · Insignia: C (escalera)
   Glitch del Mundo Distorsión: C (tartamudeo) · Campeón: B (majestuosa)
