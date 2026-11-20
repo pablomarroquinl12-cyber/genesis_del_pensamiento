@@ -28,3 +28,15 @@ CAMBIOS (19/11/2026)
   aparece "Continuar partida". "Jugar de nuevo" y "Nueva partida" piden confirmación.
 - Manifiesto: campo para el nombre, botón "Copiar todo" y "Descargar .txt" (incluyen las 4 reflexiones).
 - Celular: en horizontal la pantalla ocupa todo el alto; en vertical aparece un aviso para girarlo.
+
+EFECTOS DE SONIDO (20/11/2026) — selección final, no se cambia
+- Son sonidos 8-bit generados con código (Web Audio): no hay archivos de audio para los efectos.
+  El código está en game.tpl.html, en el bloque "EFECTOS DE SONIDO" (const SFX).
+- El botón 🔊 SONIDO silencia a la vez la música y los efectos.
+- Selección (momento: opción):
+  Empezar: C (barrido brillante) · Texto escribiéndose: C (voz grave) · Pasar diálogo: A (tic agudo)
+  Mover cursor: B (gota) · Elegir opción: A (dos notas) · Opción bloqueada: A (zumbido)
+  Alerta de borrado: C (aviso descendente) · ¡El líder quiere luchar!: A (trino de alarma)
+  Respuesta correcta: B (campanita) · Respuesta incorrecta: A (bajón) · Poción de Ideas: C (burbujas)
+  Fichas que se voltean: A (carta) · Victoria: A (fanfarria corta) · Insignia: C (escalera)
+  Glitch del Mundo Distorsión: C (tartamudeo) · Campeón: B (majestuosa)
