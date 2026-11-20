@@ -120,6 +120,13 @@ body{min-height:100vh;display:flex;flex-direction:column;align-items:center;just
 .card a{color:#2d4cc8;text-decoration:underline}
 .card ul{margin:.4cqw 0 0;padding-left:2cqw}.card li{font-size:1.15cqw;line-height:1.9;margin:.5cqw 0}
 .card .k{color:#c0601a}
+/* apuntes (SELECT): tapa toda la pantalla; se cierra con SELECT, B, A o clic */
+.notes{position:absolute;inset:0;z-index:9;background:#0b1220b3;cursor:pointer}
+.notes .card{top:7%;bottom:7%;cursor:pointer;overflow:auto}
+.notes .note{margin-top:1.2cqw;font-size:.95cqw;color:#6a6a80}
+/* aviso breve (p. ej. "¡No puedes huir!") */
+.toast{position:absolute;left:50%;top:30%;transform:translateX(-50%);z-index:8;max-width:70%;background:#2a3b57;color:#fff;border:.4cqw solid #e9a24c;border-radius:.8cqw;padding:.9cqw 1.4cqw;font-size:1.1cqw;line-height:1.8;text-align:center;pointer-events:none;animation:toastIn 2.4s forwards}
+@keyframes toastIn{0%{opacity:0;transform:translate(-50%,.6cqw)}10%,82%{opacity:1;transform:translate(-50%,0)}100%{opacity:0}}
 .ctr{position:absolute;left:0;right:0;text-align:center;z-index:3;text-shadow:.3cqw .3cqw 0 #000}
 .title{top:10%;font-size:4.4cqw;line-height:1.5;color:#ffd24a;text-shadow:.5cqw .5cqw 0 #8a1a10,-.15cqw -.15cqw 0 #fff}
 .sub{top:42%;font-size:1.7cqw;color:#fff}
@@ -155,7 +162,7 @@ body{min-height:100vh;display:flex;flex-direction:column;align-items:center;just
     <div class="ab"><button class="b" data-k="b">B</button><button class="a" data-k="a">A</button></div>
   </div>
 </div>
-<div class="help"><b>Cómo se juega:</b> haz clic en la pantalla o presiona <b>A / Enter</b> para continuar · elige con el ratón o con <b>↑ ↓ ← →</b> y <b>Enter</b> · en los combates también sirven las teclas <b>1-4</b>.<br>Si te equivocas no pasa nada: pierdes un poco de ánimo, lees la pista y eliges otra opción. ¡Así se aprende!</div>
+<div class="help"><b>Cómo se juega:</b> haz clic en la pantalla o presiona <b>A / Enter</b> para continuar · <b>B / Esc</b> para volver o cancelar · <b>SELECT / S</b> abre tus apuntes (en un gimnasio, su lección) · elige con el ratón o con <b>↑ ↓ ← →</b> y <b>Enter</b> · en los combates también sirven las teclas <b>1-4</b>.<br>Si te equivocas no pasa nada: pierdes un poco de ánimo, lees la pista y eliges otra opción. ¡Así se aprende!</div>
 
 <script>
 /*ASSETS*/
@@ -228,6 +235,7 @@ const SFX=(()=>{
 })();
 const H={a:null,b:null,mv:null,num:null,start:null};
 let tmr=null;
+let gymCtx=null,notesOpen=null;   // gimnasio actual (para los apuntes de SELECT) y apuntes abiertos
 
 /* ---------------------------- CONTENIDO ----------------------------
    REGLA PARA EDITAR PREGUNTAS: en cada pregunta, la PRIMERA opción es la correcta
@@ -316,7 +324,7 @@ function fullText(){
 /* ---------------------------- MOTOR ---------------------------- */
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a}
 function stop(){clearInterval(tmr);tmr=null}
-function scene(bg,cls){stop();H.a=H.b=H.mv=H.num=H.start=null;scr.innerHTML='';scr.className='';scr.style.backgroundImage=bg?`url(${A[bg]})`:'none';if(cls)scr.className=cls}
+function scene(bg,cls){stop();notesOpen=null;gymCtx=null;H.a=H.b=H.mv=H.num=H.start=null;scr.innerHTML='';scr.className='';scr.style.backgroundImage=bg?`url(${A[bg]})`:'none';if(cls)scr.className=cls}
 function L(html){scr.insertAdjacentHTML('beforeend',html);return scr.lastElementChild}
 function img(k,cls,st){return `<img class="${cls||''}" style="${st||''}" src="${A[k]}" alt="">`}
 /* ¿cabe el texto en el cuadro? (mide con el texto completo ya escrito) */
@@ -351,7 +359,7 @@ function say(lines,cb,opt={}){
   lines=lines.flatMap(l=>pages(l,opt));let i=0;let b;
   const show=()=>{b=typeBox(lines[i],opt);opt.onShow&&opt.onShow(lines[i])};
   show();
-  H.mv=null;H.num=null;H.b=null;
+  H.mv=null;H.num=null;H.b=()=>H.a&&H.a();   // en los diálogos, B también avanza (como A)
   H.a=()=>{if(!b._full){b._skip();return}SFX.play('avanzar');i++;if(i>=lines.length){H.a=null;if(opt.keep!==true)b.remove();cb&&cb()}else show()};
 }
 function menu(items,cls,onPick,opt={}){
@@ -362,7 +370,9 @@ function menu(items,cls,onPick,opt={}){
   function pick(i){const it=items[i];if(it.off){SFX.play('bloqueado');return}setCur(i);if(!opt.quiet)SFX.play('elegir');onPick(i,api)}
   function move(d){let n=cur;for(let k=0;k<items.length;k++){n=(n+d+items.length)%items.length;if(!items[n].off){if(n!==cur)SFX.play('cursor');setCur(n);return}}}
   const api={els,items,setHtml(i,h){els[i].innerHTML=h},off(i){items[i].off=true;els[i].classList.add('off')},el:m,remove(){m.remove()},cur:()=>cur};
-  H.a=tap(()=>pick(cur));H.b=null;
+  H.a=tap(()=>pick(cur));
+  // B = volver/cancelar: opt.back es el número de la opción "no/volver" o una función
+  H.b=opt.back==null?null:tap(typeof opt.back==='function'?opt.back:()=>pick(opt.back));
   H.mv=(dx,dy)=>{const d=(cls.includes('opts')&&!opt.iconlist)?(dx||dy*2):(dx||dy);move(d>0?1:-1)};
   H.num=n=>{if(n>=1&&n<=items.length)pick(n-1)};
   const first=items.findIndex(i=>!i.off);setCur(opt.start??Math.max(0,first));
@@ -371,6 +381,24 @@ function menu(items,cls,onPick,opt={}){
 function bar(f){return f>.5?'':(f>.25?'y':'r')}
 function setBar(el,f){const u=el.querySelector('u');u.style.width=(f*100)+'%';u.className=bar(f)}
 function badgesTop(){return `<div class="badges top">${G.map((g,i)=>img('b_'+g.badge+(done[i]?'':'_off'))).join('')}</div>`}
+/* SELECT = apuntes. En un gimnasio muestra su lección para repasar (también en pleno combate);
+   fuera de los gimnasios, tus insignias, lo que aprendiste y los controles. A, B, SELECT o clic para cerrar. */
+function notes(){
+  if(notesOpen)return closeNotes();
+  if(tmr)return;   // no mientras Nietzsche muestra las fichas para memorizar
+  const g=gymCtx==null?null:G[gymCtx],got=G.filter((_,i)=>done[i]);
+  const body=g
+    ?`<h3>APUNTES · ${g.name}</h3><ul>${g.clase.map(t=>`<li>${t}</li>`).join('')}</ul><p><span class="k">FRASE:</span> ${g.frase}</p>`
+    :`<h3>APUNTES · ${got.length} DE 4 INSIGNIAS</h3>${got.length?`<ul>${got.map(x=>`<li><span class="k">${x.BN}:</span> ${x.takeaway}</li>`).join('')}</ul>`:'<p>Aún no tienes insignias. Cada una que ganes añadirá aquí lo que aprendiste.</p>'}<p><span class="k">CONTROLES:</span> A o clic: avanzar · B: volver o cancelar · SELECT: apuntes · ↑↓←→ o 1-4: elegir</p>`;
+  const el=L(`<div class="notes"><div class="card">${body}<p class="note">Pulsa SELECT, B o haz clic para cerrar</p></div></div>`);
+  el.addEventListener('click',e=>{e.stopPropagation();closeNotes()});
+  notesOpen={el,saved:{...H}};   // guarda los controles de la escena para devolverlos al cerrar
+  H.a=H.b=closeNotes;H.mv=H.num=H.start=null;
+  SFX.play('elegir');
+}
+function closeNotes(){if(!notesOpen)return;notesOpen.el.remove();Object.assign(H,notesOpen.saved);notesOpen=null;SFX.play('avanzar')}
+/* aviso breve encima de la pantalla (no interrumpe el juego) */
+function toast(msg){scr.querySelector('.toast')?.remove();const t=L(`<div class="toast">${msg}</div>`);setTimeout(()=>t.remove(),2400)}
 
 /* ---------------------------- ESCENAS ---------------------------- */
 function title(){
@@ -391,14 +419,14 @@ function title(){
         m.remove();
         if(i===0){const n=done.indexOf(false);map(n<0?4:n)}
         else confirmWipe(()=>oak(0),title);
-      });
+      },{back:title});
     });
   });
 }
 /* pide confirmación antes de borrar todo (insignias, reflexiones y manifiesto) */
 function confirmWipe(yes,no){
   SFX.play('alerta');typeBox('¿Seguro? Se borrarán tus insignias, tus reflexiones y tu manifiesto. Si quieres conservarlos, cópialos o descárgalos antes.',{title:'ATENCIÓN'});
-  menu([{html:'No, volver'},{html:'Sí, borrar todo'}],'yn',(i,m)=>{m.remove();if(i===1){wipe();yes()}else no()});
+  menu([{html:'No, volver'},{html:'Sí, borrar todo'}],'yn',(i,m)=>{m.remove();if(i===1){wipe();yes()}else no()},{back:0});
 }
 function oakScene(){scene('bg_lab');L(img('sp_prof','',`position:absolute;left:26%;top:20%;height:30cqw;z-index:3`));L(img('sp_alex','',`position:absolute;left:52%;top:26%;height:26cqw;z-index:3`));L(img('sp_leonel','',`position:absolute;left:72%;top:42%;height:15cqw;z-index:3`))}
 function oak(step){
@@ -407,7 +435,7 @@ function oak(step){
   if(step===0)say(['¡Hola, Alex! Bienvenido al laboratorio. Soy el Profesor Oak y estudio algo más grande que cualquier criatura: el ser humano.','Esta región es la Liga de la Región Filosófica. Para recorrerla, Leonel y tú deberán responder una pregunta que ha acompañado a la humanidad durante siglos: ¿QUÉ ES EL HOMBRE?','Te entregaré el Pokédex del Ser. Se llenará con las 4 insignias que ganes: Virtud, Sentido, Razón y Libertad. ¿Aceptas el desafío, Alex?'],()=>oak(1),{title:T,keep:true});
   else if(step===1||step===2){
     if(step===2)typeBox('No hay prisa, Alex. Piensa en la pregunta: ¿qué es el hombre? Cuando estés listo, responde.',{title:T});else typeBox('¿Aceptas el desafío, Alex?',{title:T});
-    menu([{html:'¡Por supuesto!'},{html:'Todavía no estoy listo'}],'yn',i=>{i===0?oak(3):oak(2)});
+    menu([{html:'¡Por supuesto!'},{html:'Todavía no estoy listo'}],'yn',i=>{i===0?oak(3):oak(2)},{back:1});
   } else if(step===3)say(['¡Excelente! Aquí tienes el Pokédex del Ser. Aún está vacío: cada insignia revelará una parte de la respuesta.','Cada líder de gimnasio representa una época. Escucha su lección, pelea con tus respuestas y gana su insignia. ¡Si fallas, aprenderás con la pista y podrás elegir otra opción!'],()=>map(0),{title:T});
 }
 function map(start){
@@ -418,30 +446,33 @@ function map(start){
   const items=G.map((g,i)=>{const ok=i===0||done[i-1];return{html:`${done[i]?'✔ ':''}${i+1}. ${g.name}<small>${g.place}${ok?'':' · 🔒 gana la insignia anterior'}</small>`,cls:ok?'':'lock',off:!ok}});
   items.push({html:`5. MUNDO DISTORSIÓN<small>POSMODERNIDAD${all?'':' · 🔒 necesitas las 4 insignias'}</small>`,cls:all?'':'lock',off:!all});
   typeBox('¿A dónde quieres ir, Alex? Los gimnasios se desbloquean en orden. Puedes repetir los que ya ganaste.',{title:'MAPA'});
-  menu(items,'list',(i)=>{i<4?gymIntro(i):glitch()},{start:Math.min(start,items.length-1)});
+  menu(items,'list',(i)=>{i<4?gymIntro(i):glitch()},{start:Math.min(start,items.length-1),back:()=>{SFX.play('avanzar');title()}});
 }
 function gymIntro(k){
-  const g=G[k];music(k+1);scene(g.bg);SFX.play('reto');
+  const g=G[k];music(k+1);scene(g.bg);gymCtx=k;SFX.play('reto');
   L(`<div class="ctr" style="top:4%;font-size:1.3cqw;color:#fff">${g.place}</div>`);
   L(badgesTop());
   say([`¡${g.name} quiere luchar!`,g.intro],()=>ficha(k),{title:g.name,keep:true});
 }
 function ficha(k){
-  const g=G[k];scene(g.bg);
+  const g=G[k];scene(g.bg);gymCtx=k;
   L(`<div class="card"><h3>FICHA DE LA ÉPOCA</h3><p><span class="k">ARTE:</span> ${g.arte}</p><p><span class="k">MÚSICA:</span> ${g.musica} — <a href="${g.url}" target="_blank" rel="noopener">▶ escuchar</a></p><p><span class="k">FRASE:</span> ${g.frase}</p></div>`);
-  typeBox('Este es el mundo de '+g.name+'. Escucha su música (se abre en una pestaña nueva) y lee su frase. ▼ para la lección.',{title:'DATO'});
+  typeBox('Este es el mundo de '+g.name+'. Escucha su música (se abre en una pestaña nueva) y lee su frase. ▼ para la lección · B: volver al mapa.',{title:'DATO'});
   H.a=tap(()=>{SFX.play('avanzar');clase(k)});
+  H.b=tap(()=>{SFX.play('avanzar');map(k)});
 }
 function clase(k){
-  const g=G[k];scene(g.bg);
+  const g=G[k];scene(g.bg);gymCtx=k;
   L(`<div class="card"><h3>CLASE RÁPIDA · ${g.name}</h3><ul>${g.clase.map(t=>`<li>${t}</li>`).join('')}</ul></div>`);
-  typeBox('Memoriza lo esencial: te servirá en el combate. ▼ para pelear.',{title:'LECCIÓN'});
+  typeBox('Memoriza lo esencial: te servirá en el combate (y podrás repasarlo con SELECT). ▼ para pelear · B: volver al mapa.',{title:'LECCIÓN'});
   H.a=tap(()=>{SFX.play('avanzar');battle(k)});
+  H.b=tap(()=>{SFX.play('avanzar');map(k)});
 }
 function battle(k){
   const g=G[k];
   const st={q:0,hp:5,foe:5,first:0,wq:0};
-  const hud=()=>{scene(g.bg,'');
+  const flee=()=>{SFX.play('bloqueado');toast('¡No puedes huir de un combate de gimnasio! Pulsa SELECT para repasar la lección.')};
+  const hud=()=>{scene(g.bg,'');gymCtx=k;
     L(`<div class="hud foe"><div class="nm">${g.name}<span>Nv.100</span></div><div class="hp"><b>PS</b><i><u style="width:${st.foe/5*100}%" class="${bar(st.foe/5)}"></u></i></div></div>`);
     L(`<div class="hud me"><div class="nm">ALEX<span>ÁNIMO</span></div><div class="hp"><b>PS</b><i><u style="width:${st.hp/5*100}%" class="${bar(st.hp/5)}"></u></i></div><div class="num">${st.hp}/5</div></div>`);
     L(img('sp_alex','pl'));
@@ -467,7 +498,7 @@ function battle(k){
         M.els.forEach((e,i)=>{e.classList.remove('peek');if(!st._o[i].dead)e.innerHTML='<span class="qm">?</span>'});
         typeBox(q[0],{title:g.name,cls:box});setc();
         H.mv=(dx,dy)=>{const d=dx||dy;if(!d)return;const c0=cur;do{cur=(cur+(d>0?1:-1)+4)%4}while(st._o[cur].dead);if(cur!==c0)SFX.play('cursor');setc()};
-        H.a=tap(()=>pick(cur));
+        H.a=tap(()=>pick(cur));H.b=flee;
         H.num=n=>{if(n>=1&&n<=4)pick(n-1)};
       };
       if(first){   // al empezar cada reto las fichas se ven unos segundos: hay que memorizarlas
@@ -475,13 +506,13 @@ function battle(k){
         M.el.classList.add('idle');   // mientras se memoriza, tocar la pantalla sirve para empezar ya
         M.els.forEach((e,i)=>{e.classList.add('peek');e.innerHTML=st._o[i].t});for(let j=0;j<4;j++)SFX.play('voltear',j*.09);
         typeBox('¡Memoriza dónde queda cada valor! Las fichas se darán la vuelta en unos segundos… (toca la pantalla o pulsa A para empezar ya)',{title:g.name,cls:box});
-        H.a=tap(play,700);
+        H.a=H.b=tap(play,700);
         tmr=setTimeout(play,4500);
       }else play();
     }else{
       typeBox(q[0],{title:g.name});
       const items=st._o.map(o=>g.icon?{html:img('i_'+o.t),cls:'ico',off:o.dead}:{html:o.t,off:o.dead});
-      M=menu(items,'opts'+(g.icon?' icons':''),pick,{iconlist:false,quiet:true});
+      M=menu(items,'opts'+(g.icon?' icons':''),pick,{iconlist:false,quiet:true,back:flee});
     }
   }
   function freeze(){M.el.classList.add('idle');M.el.style.pointerEvents='none';M.els.forEach(e=>e.style.pointerEvents='none')}
@@ -547,7 +578,7 @@ function refl(i){
   ta.addEventListener('input',()=>{answers[i]=ta.value;save()});
   f.querySelector('#bn').onclick=()=>{SFX.play('elegir');answers[i]=ta.value;save();i<3?refl(i+1):manifest()};
   const bp=f.querySelector('#bp');if(bp)bp.onclick=()=>{SFX.play('elegir');answers[i]=ta.value;save();refl(i-1)};
-  H.a=null;
+  H.a=null;H.b=bp?()=>bp.click():null;   // B de la consola = "◀ Atrás"
 }
 function manifest(){
   scene('bg_dex');
@@ -559,6 +590,7 @@ function manifest(){
   f.querySelector('#bc').onclick=()=>{SFX.play('elegir');copyText(fullText(),cp)};
   f.querySelector('#bd').onclick=()=>{SFX.play('elegir');download(fullText());cp.textContent='¡Descargado!'};
   f.querySelector('#bf').onclick=()=>final();
+  H.b=()=>{SFX.play('elegir');refl(3)};   // B de la consola = volver a la última reflexión
 }
 function copyText(t,msg){
   const fallback=()=>{const x=document.createElement('textarea');x.value=t;x.style.cssText='position:fixed;left:-9999px;opacity:0';document.body.appendChild(x);x.select();let ok=false;try{ok=document.execCommand('copy')}catch(e){}x.remove();msg.textContent=ok?'¡Copiado!':'No se pudo copiar: usa «Descargar .txt»'};
@@ -592,11 +624,11 @@ scr.addEventListener('click',e=>{
   H.a&&H.a();
 });
 function key(k){
-  if(k==='mute')toggleMute();else if(k==='a')H.a&&H.a();else if(k==='b')H.b&&H.b();else if(k==='start')H.start?H.start():(H.a&&scr.querySelector('.press')&&H.a());
+  if(k==='mute')toggleMute();else if(k==='sel')notes();else if(k==='a')H.a&&H.a();else if(k==='b')H.b&&H.b();else if(k==='start')H.start?H.start():(H.a&&scr.querySelector('.press')&&H.a());
   else if(k==='u')H.mv&&H.mv(0,-1);else if(k==='d')H.mv&&H.mv(0,1);else if(k==='l')H.mv&&H.mv(-1,0);else if(k==='r')H.mv&&H.mv(1,0);
 }
 document.querySelectorAll('[data-k]').forEach(b=>b.addEventListener('click',()=>key(b.dataset.k)));
-const KEYS={Enter:'a',' ':'a',z:'a',Z:'a',Escape:'b',x:'b',X:'b',Backspace:'b',ArrowUp:'u',ArrowDown:'d',ArrowLeft:'l',ArrowRight:'r'};
+const KEYS={Enter:'a',' ':'a',z:'a',Z:'a',Escape:'b',x:'b',X:'b',Backspace:'b',s:'sel',S:'sel',ArrowUp:'u',ArrowDown:'d',ArrowLeft:'l',ArrowRight:'r'};
 const typing=e=>e.target instanceof Element&&(/TEXTAREA|INPUT/.test(e.target.tagName)||!!e.target.closest('.form,a'));   // en formularios y enlaces, las teclas funcionan normal
 addEventListener('keydown',e=>{
   if(typing(e))return;
