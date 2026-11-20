@@ -13,3 +13,17 @@ ARCHIVOS
 - herramientas_opcionales/ scripts con que se generaron las imágenes y la presentación (opcionales; tienen rutas de la máquina original).
 
 Para cambiar preguntas: busca "const G=[" dentro de game.tpl.html.
+REGLA: en cada pregunta la PRIMERA opción es la correcta (el juego las baraja al mostrarlas).
+Excepción: Tomás de Aquino usa la lista "correct". Los textos largos se reparten solos en varias páginas.
+
+CAMBIOS (19/11/2026)
+- Sócrates: 4 de 5 preguntas daban por buena la respuesta incorrecta. Corregido.
+- Un clic en el fondo de la pantalla o Enter repetido ya no contestan por el jugador.
+  El primer clic termina de escribir el texto; para responder hay que elegir la opción.
+- Las pistas (PISTA) ya no se cortan: van en su propia página. Ningún texto se sale del cuadro.
+- Nietzsche: las fichas se muestran unos segundos para memorizarlas y cada reto es una pista
+  sobre su pensamiento (ya no es adivinar al azar).
+- El progreso se guarda solo en el navegador (insignias, reflexiones y manifiesto). Al volver
+  aparece "Continuar partida". "Jugar de nuevo" y "Nueva partida" piden confirmación.
+- Manifiesto: campo para el nombre, botón "Copiar todo" y "Descargar .txt" (incluyen las 4 reflexiones).
+- Celular: en horizontal la pantalla ocupa todo el alto; en vertical aparece un aviso para girarlo.
