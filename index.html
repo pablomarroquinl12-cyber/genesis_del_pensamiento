@@ -28,10 +28,14 @@ body{min-height:100vh;display:flex;flex-direction:column;align-items:center;just
 .help b{color:#ffd24a}
 .rot{display:none}
 
-/* ---------- celular vertical: consola compacta + aviso para girar ---------- */
-@media (max-width:640px) and (orientation:portrait){
-  body{padding:8px;justify-content:flex-start}
+/* ---------- celular vertical: aviso para girar (solo pantallas táctiles) ---------- */
+@media (max-width:640px) and (orientation:portrait) and (pointer:coarse){
+  body{justify-content:flex-start}
   .rot{display:block;width:100%;margin:4px 0 12px;padding:10px 12px;font-size:9px;line-height:1.9;color:#ffd24a;text-align:center;border:2px dashed #ffd24a66;border-radius:10px}
+}
+/* ---------- pantallas angostas: consola compacta para que nada se salga ---------- */
+@media (max-width:540px){
+  body{padding:8px}
   .shell{padding:10px 10px 18px;border-radius:18px 18px 44px 44px}
   .brand{font-size:7px;letter-spacing:1px}
   .bezel{padding:8px;border-radius:10px 10px 24px 10px}
@@ -45,7 +49,7 @@ body{min-height:100vh;display:flex;flex-direction:column;align-items:center;just
 @media (orientation:landscape) and (max-height:520px){
   body{padding:4px;min-height:100vh;min-height:100dvh}
   .brand,.controls,.help,.rot{display:none}
-  .shell{width:min(100%,calc((100vh - 26px)*16/9 + 26px));width:min(100%,calc((100dvh - 26px)*16/9 + 26px));padding:6px;border-radius:12px}
+  .shell{width:min(100%,calc((100vh - 40px)*16/9 + 26px));width:min(100%,calc((100dvh - 40px)*16/9 + 26px));padding:6px;border-radius:12px}
   .bezel{padding:4px;border-radius:8px}
 }
 
@@ -213,7 +217,11 @@ let manif='',player='';
 
 /* ---------------- PROGRESO GUARDADO (sobrevive a recargar la página) ---------------- */
 const SAVE='genesis_pensamiento_v1';
-function save(){try{localStorage.setItem(SAVE,JSON.stringify({done,answers,manif,player}))}catch(e){}}
+let canSave=true;   // falso si el navegador bloquea el guardado (p. ej. modo privado)
+function save(){try{localStorage.setItem(SAVE,JSON.stringify({done,answers,manif,player}));canSave=true}catch(e){canSave=false}}
+function saveLabel(){return canSave?'Guardado automático':'Aquí no se puede guardar: copia o descarga tu texto'}
+/* espera a que cargue la fuente pixel antes de medir textos (máximo 2.5 s; sin internet usa la de respaldo) */
+const fontsReady=Promise.race([document.fonts?document.fonts.ready:Promise.resolve(),new Promise(r=>setTimeout(r,2500))]);
 function load(){try{const s=JSON.parse(localStorage.getItem(SAVE)||'null');if(!s)return;
   if(Array.isArray(s.done))s.done.slice(0,4).forEach((v,i)=>done[i]=!!v);
   if(Array.isArray(s.answers))answers=[0,1,2,3].map(i=>String(s.answers[i]||''));
@@ -262,6 +270,7 @@ function typeBox(text,opt={}){
 }
 function say(lines,cb,opt={}){
   if(typeof lines==='string')lines=[lines];
+  scr.querySelectorAll('.menu').forEach(m=>m.classList.add('idle'));   // un menú que queda de fondo ya no está activo
   lines=lines.flatMap(l=>pages(l,opt));let i=0;let b;
   const show=()=>{b=typeBox(lines[i],opt)};
   show();
@@ -295,16 +304,19 @@ function title(){
   L(img('sp_leonel','',`position:absolute;right:12%;bottom:12%;height:16cqw;z-index:3`));
   L(`<div class="ctr press">▶ PRESIONA START O HAZ CLIC</div>`);
   L(`<div class="ctr" style="bottom:2%;font-size:.95cqw;color:#fff">Humanismo Clásico y Contemporáneo · Universidad Anáhuac Mayab · Equipo 4</div>`);
-  H.a=H.start=()=>{
-    if(!hasProgress())return oak(0);
-    H.start=null;scr.querySelector('.press')?.remove();
-    typeBox('Tienes una partida guardada en este navegador. ¿Qué quieres hacer?',{title:'PARTIDA GUARDADA'});
-    menu([{html:'Continuar partida'},{html:'Nueva partida'}],'yn',(i,m)=>{
-      m.remove();
-      if(i===0){const n=done.indexOf(false);map(n<0?4:n)}
-      else confirmWipe(()=>oak(0),title);
+  H.a=H.start=tap(()=>{   // tap(): un doble clic que venga de la pantalla anterior no se salta la portada
+    H.a=H.start=null;
+    fontsReady.then(()=>{
+      if(!hasProgress())return oak(0);
+      scr.querySelector('.press')?.remove();
+      typeBox('Tienes una partida guardada en este navegador. ¿Qué quieres hacer?',{title:'PARTIDA GUARDADA'});
+      menu([{html:'Continuar partida'},{html:'Nueva partida'}],'yn',(i,m)=>{
+        m.remove();
+        if(i===0){const n=done.indexOf(false);map(n<0?4:n)}
+        else confirmWipe(()=>oak(0),title);
+      });
     });
-  };
+  });
 }
 /* pide confirmación antes de borrar todo (insignias, reflexiones y manifiesto) */
 function confirmWipe(yes,no){
@@ -374,7 +386,7 @@ function battle(k){
       const setc=()=>M.els.forEach((e,i)=>e.classList.toggle('sel',!st.peek&&i===cur));
       M.els.forEach((e,i)=>e.addEventListener('mouseenter',()=>{if(!st.peek&&!st._o[i].dead){cur=i;setc()}}));
       const play=()=>{   // fichas boca abajo: ahora se responde el reto
-        stop();st.peek=false;
+        stop();st.peek=false;M.el.classList.remove('idle');
         M.els.forEach((e,i)=>{e.classList.remove('peek');if(!st._o[i].dead)e.innerHTML='<span class="qm">?</span>'});
         typeBox(q[0],{title:g.name,cls:box});setc();
         H.mv=(dx,dy)=>{const d=dx||dy;if(!d)return;do{cur=(cur+(d>0?1:-1)+4)%4}while(st._o[cur].dead);setc()};
@@ -383,8 +395,9 @@ function battle(k){
       };
       if(first){   // al empezar cada reto las fichas se ven unos segundos: hay que memorizarlas
         st.peek=true;H.mv=H.num=null;setc();
+        M.el.classList.add('idle');   // mientras se memoriza, tocar la pantalla sirve para empezar ya
         M.els.forEach((e,i)=>{e.classList.add('peek');e.innerHTML=st._o[i].t});
-        typeBox('¡Memoriza dónde queda cada valor! Las fichas se darán la vuelta en unos segundos… (pulsa A para empezar ya)',{title:g.name,cls:box});
+        typeBox('¡Memoriza dónde queda cada valor! Las fichas se darán la vuelta en unos segundos… (toca la pantalla o pulsa A para empezar ya)',{title:g.name,cls:box});
         H.a=tap(play,700);
         tmr=setTimeout(play,4500);
       }else play();
@@ -394,7 +407,7 @@ function battle(k){
       M=menu(items,'opts'+(g.icon?' icons':''),pick,{iconlist:false});
     }
   }
-  function freeze(){M.el.style.pointerEvents='none';M.els.forEach(e=>e.style.pointerEvents='none')}
+  function freeze(){M.el.classList.add('idle');M.el.style.pointerEvents='none';M.els.forEach(e=>e.style.pointerEvents='none')}
   function pick(i){
     if(st.peek)return;
     const o=st._o[i];if(!o||o.dead)return;
@@ -451,7 +464,7 @@ function dex(){
 }
 function refl(i){
   scene('bg_distorsion','');
-  const f=L(`<div class="form"><h3>REFLEXIÓN (no se califica) · ${i+1}/4</h3><p>${REFL[i]}</p>${i===3?'<p class="note">«La incredulidad con respecto a los metarrelatos» (Lyotard, 1979)</p>':''}<textarea placeholder="Escribe aquí tu reflexión…"></textarea><div class="btns"><span class="note" style="align-self:center;margin-right:auto">Se guarda solo ✔</span>${i>0?'<button class="btn alt" id="bp">◀ Atrás</button>':''}<button class="btn" id="bn">${i<3?'Siguiente ▶':'Ir al manifiesto ▶'}</button></div></div>`);
+  const f=L(`<div class="form"><h3>REFLEXIÓN (no se califica) · ${i+1}/4</h3><p>${REFL[i]}</p>${i===3?'<p class="note">«La incredulidad con respecto a los metarrelatos» (Lyotard, 1979)</p>':''}<textarea placeholder="Escribe aquí tu reflexión…"></textarea><div class="btns"><span class="note" style="align-self:center;margin-right:auto">${saveLabel()}</span>${i>0?'<button class="btn alt" id="bp">◀ Atrás</button>':''}<button class="btn" id="bn">${i<3?'Siguiente ▶':'Ir al manifiesto ▶'}</button></div></div>`);
   const ta=f.querySelector('textarea');ta.value=answers[i];
   ta.addEventListener('input',()=>{answers[i]=ta.value;save()});
   f.querySelector('#bn').onclick=()=>{answers[i]=ta.value;save();i<3?refl(i+1):manifest()};
@@ -460,7 +473,7 @@ function refl(i){
 }
 function manifest(){
   scene('bg_dex');
-  const f=L(`<div class="form"><h3>MANIFIESTO DEL SER</h3><p>Escribe 3 a 5 líneas que respondan «¿Qué significa ser humano?» con lo aprendido en las 4 misiones. «Copiar» y «Descargar» incluyen también tus 4 reflexiones.</p><input id="pn" maxlength="60" placeholder="Tu nombre (para firmar)"><textarea id="mf" placeholder="Para mí, ser humano significa…"></textarea><div class="btns"><span class="note" id="cp" style="align-self:center;margin-right:auto">Se guarda solo ✔</span><button class="btn alt" id="bc">Copiar todo</button><button class="btn alt" id="bd">Descargar .txt</button><button class="btn" id="bf">Finalizar ▶</button></div></div>`);
+  const f=L(`<div class="form"><h3>MANIFIESTO DEL SER</h3><p>Escribe 3 a 5 líneas que respondan «¿Qué significa ser humano?» con lo aprendido en las 4 misiones. «Copiar» y «Descargar» incluyen también tus 4 reflexiones.</p><input id="pn" maxlength="60" placeholder="Tu nombre (para firmar)"><textarea id="mf" placeholder="Para mí, ser humano significa…"></textarea><div class="btns"><span class="note" id="cp" style="align-self:center;margin-right:auto">${saveLabel()}</span><button class="btn alt" id="bc">Copiar todo</button><button class="btn alt" id="bd">Descargar .txt</button><button class="btn" id="bf">Finalizar ▶</button></div></div>`);
   const ta=f.querySelector('#mf'),pn=f.querySelector('#pn'),cp=f.querySelector('#cp');
   ta.value=manif;pn.value=player;
   ta.addEventListener('input',()=>{manif=ta.value;save()});
@@ -496,8 +509,8 @@ function finalMenu(){
 /* ---------------------------- ENTRADAS ---------------------------- */
 scr.addEventListener('click',e=>{
   if(e.target.closest('.it,.tile,a,textarea,input,button'))return;
-  // si hay opciones en pantalla, un clic en el fondo NO elige nada: solo termina de escribir el texto
-  if(scr.querySelector('.menu')){const d=scr.querySelector('.dlg');if(d&&!d._full)d._skip();return}
+  // si hay opciones activas en pantalla, un clic en el fondo NO elige nada: solo termina de escribir el texto
+  if(scr.querySelector('.menu:not(.idle)')){const d=scr.querySelector('.dlg');if(d&&!d._full)d._skip();return}
   H.a&&H.a();
 });
 function key(k){
@@ -506,11 +519,11 @@ function key(k){
 }
 document.querySelectorAll('[data-k]').forEach(b=>b.addEventListener('click',()=>key(b.dataset.k)));
 addEventListener('keydown',e=>{
-  if(/TEXTAREA|INPUT/.test(e.target.tagName))return;
+  if(/TEXTAREA|INPUT/.test(e.target.tagName)||e.target.closest('.form,a'))return;   // en formularios y enlaces, las teclas funcionan normal
   const m={Enter:'a',' ':'a',z:'a',Z:'a',Escape:'b',x:'b',X:'b',Backspace:'b',ArrowUp:'u',ArrowDown:'d',ArrowLeft:'l',ArrowRight:'r'}[e.key];
   if(m){e.preventDefault();key(m)}else if(/^[1-9]$/.test(e.key)&&H.num)H.num(+e.key);
 });
-load();
+load();save();   // prueba si este navegador permite guardar
 title();
 </script>
 </body>
