@@ -17,6 +17,9 @@ def png(path,key,size=None):
     if size: im=im.resize(size,Image.NEAREST if size[0]>im.size[0] else Image.LANCZOS)
     b=io.BytesIO(); im.save(b,'PNG',optimize=True); out[key]='data:image/png;base64,'+base64.b64encode(b.getvalue()).decode()
 for k in ['socrates','tomas','descartes','nietzsche']: jpg(B+f'era16_{k}.jpg',k)
+for k in ['socrates','tomas','descartes','nietzsche','posmo']:   # obras de arte (se conserva la proporción)
+    im=Image.open(D+f'/assets/obras/obra_{k}.jpg').convert('RGB'); b=io.BytesIO(); im.save(b,'JPEG',quality=80)
+    out['o_'+k]='data:image/jpeg;base64,'+base64.b64encode(b.getvalue()).decode()
 for k in ['title','lab','distorsion','final','dex']: jpg(A+f'bg_{k}.jpg','bg_'+k)
 for k in ['alex','prof','leonel']: png(A+f'sprite_{k}.png','sp_'+k)
 for k in ['virtud','sentido','razon','libertad']:
