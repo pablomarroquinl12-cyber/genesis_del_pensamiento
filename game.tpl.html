@@ -120,6 +120,16 @@ body{min-height:100vh;display:flex;flex-direction:column;align-items:center;just
 .card a{color:#2d4cc8;text-decoration:underline}
 .card ul{margin:.4cqw 0 0;padding-left:2cqw}.card li{font-size:1.15cqw;line-height:1.9;margin:.5cqw 0}
 .card .k{color:#c0601a}
+.card.fi{display:flex;gap:2.2cqw;align-items:stretch}
+.card.fi .ft{flex:1;min-width:0}
+.art{position:relative;margin:0;flex:0 0 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;max-width:19cqw;animation:artin 1s steps(8) both}
+.art .fr{position:relative;border:.45cqw solid #b88a2e;outline:.2cqw solid #5a3d10;background:#3b2a14;padding:.45cqw;box-shadow:.4cqw .4cqw 0 #0004}
+.art img{display:block;max-width:17cqw;max-height:21cqw;filter:saturate(.9) contrast(1.05);image-rendering:auto}
+.art .fr::after{content:'';position:absolute;inset:.45cqw;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.09) 0 .12cqw,transparent .12cqw .36cqw);mix-blend-mode:multiply}
+.art figcaption{margin-top:.7cqw;background:#f1e3b8;border:.25cqw solid #b88a2e;color:#4a3410;font-size:.85cqw;line-height:1.5;padding:.4cqw .7cqw;text-align:center;max-width:19cqw}
+@keyframes artin{from{opacity:0;transform:translateY(1cqw)}to{opacity:1;transform:none}}
+.glart{position:absolute;z-index:2;right:6%;top:9%;width:30cqw;opacity:.38;mix-blend-mode:screen;image-rendering:pixelated;animation:glw 1.6s steps(5) infinite;pointer-events:none}
+@keyframes glw{0%,100%{transform:none;filter:none}25%{transform:translateX(.8cqw);filter:hue-rotate(80deg) saturate(1.8)}50%{transform:translateX(-1cqw) skewX(2deg);filter:invert(.2)}75%{transform:translateX(.5cqw);filter:hue-rotate(220deg)}}
 /* apuntes (SELECT): tapa toda la pantalla; se cierra con SELECT, B, A o clic */
 .notes{position:absolute;inset:0;z-index:9;background:#0b1220b3;cursor:pointer}
 .notes .card{top:7%;bottom:7%;cursor:pointer;overflow:auto}
@@ -244,7 +254,7 @@ let gymCtx=null,notesOpen=null;   // gimnasio actual (para los apuntes de SELECT
    Los textos largos se reparten solos en varias páginas del cuadro de diálogo. */
 const G=[
 {id:1,name:'SÓCRATES',bg:'socrates',badge:'virtud',BN:'Insignia de la Virtud',place:'GIMNASIO ÁGORA · EDAD ANTIGUA',
- arte:'Vasija griega de figuras rojas (simposio, s. V a. C.)',musica:'Epitafio de Seikilos',url:'https://www.youtube.com/watch?v=O6ILsg3q3po',
+ arte:'Vasija griega de figuras rojas (Grecia antigua)',musica:'Epitafio de Seikilos',url:'https://www.youtube.com/watch?v=O6ILsg3q3po',
  frase:'«Una vida sin examen no merece ser vivida». (Sócrates, según Platón, Apología 38a)',
  intro:'Soy Sócrates, líder del Gimnasio Ágora. Aquí no se gana con fuerza, sino con preguntas. ¡Demuestra qué has aprendido de la Edad Antigua!',
  clase:['Método: preguntar y dialogar (mayéutica) para que cada persona descubra la verdad por sí misma.','Virtud (areté): la excelencia del carácter. Quien conoce el bien, obra bien.','«Conócete a ti mismo»: la vida filosófica empieza examinándote.'],
@@ -465,7 +475,7 @@ function gymIntro(k){
 }
 function ficha(k){
   const g=G[k];scene(g.bg);gymCtx=k;
-  L(`<div class="card"><h3>FICHA DE LA ÉPOCA</h3><p><span class="k">ARTE:</span> ${g.arte}</p><p><span class="k">MÚSICA:</span> ${g.musica} — <a href="${g.url}" target="_blank" rel="noopener">▶ escuchar</a></p><p><span class="k">FRASE:</span> ${g.frase}</p></div>`);
+  L(`<div class="card fi"><div class="ft"><h3>FICHA DE LA ÉPOCA</h3><p><span class="k">ARTE:</span> ${g.arte}</p><p><span class="k">MÚSICA:</span> ${g.musica} — <a href="${g.url}" target="_blank" rel="noopener">▶ escuchar</a></p><p><span class="k">FRASE:</span> ${g.frase}</p></div><figure class="art"><div class="fr"><img src="${A['o_'+g.bg]}" alt="${g.arte}"></div><figcaption>${g.arte}</figcaption></figure></div>`);
   typeBox('Este es el mundo de '+g.name+'. Escucha su música (se abre en una pestaña nueva) y lee su frase. ▼ para la lección · B: volver al mapa.',{title:'DATO'});
   H.a=tap(()=>{SFX.play('avanzar');clase(k)});
   H.b=tap(()=>{SFX.play('avanzar');map(k)});
@@ -577,8 +587,8 @@ function badge(k,first){
   say([`¡Felicidades, Alex! Has obtenido la ${g.BN}. Sumas ${done.filter(Boolean).length} de 4 insignias para tu Pokédex del Ser.`,`Respondiste ${first} de 5 retos a la primera. ${first===5?'¡Perfecto!':first>=3?'¡Muy bien!':'Repite el gimnasio cuando quieras: repasar también es aprender.'}`,`Lo que aprendiste: ${g.takeaway}`],()=>map(Math.min(k+1,4)),{title:'INSIGNIA'});
 }
 function glitch(){
-  music(0);scene('bg_distorsion','glitch');SFX.play('glitch');
-  say(['¡Un glitch! El Mundo Distorsión (Posmodernidad) aparece. Las certezas se desvanecen…','Aquí ya no hay una sola gran historia que lo explique todo. Jean-François Lyotard la llamó «incredulidad con respecto a los metarrelatos» (La condición posmoderna, 1979).','Arte: Marilyn Diptych (Warhol, 1962), arte pop de la cultura de masas. Música: «Everything in Its Right Place» (Radiohead, 2000).','¡Alex, solo con tus 4 insignias puedes entrar al Pokédex del Ser!'],()=>dex(),{title:'MUNDO DISTORSIÓN'});
+  music(0);scene('bg_distorsion','glitch');SFX.play('glitch');L(`<img class="glart" src="${A.o_posmo}" alt="Retratos de Marilyn Monroe (Warhol)">`);
+  say(['¡Un glitch! El Mundo Distorsión (Posmodernidad) aparece. Las certezas se desvanecen…','Aquí ya no hay una sola gran historia que lo explique todo. Jean-François Lyotard la llamó «incredulidad con respecto a los metarrelatos» (La condición posmoderna, 1979).','Arte: retratos de Marilyn Monroe (Warhol, serigrafías de los años 60), arte pop de la cultura de masas. Música: «Everything in Its Right Place» (Radiohead, 2000).','¡Alex, solo con tus 4 insignias puedes entrar al Pokédex del Ser!'],()=>dex(),{title:'MUNDO DISTORSIÓN'});
 }
 function dex(){
   scene('bg_dex');
