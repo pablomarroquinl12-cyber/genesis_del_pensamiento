@@ -97,6 +97,15 @@ body{min-height:100vh;display:flex;flex-direction:column;align-items:center;just
 .tile.sel{outline:.4cqw solid #ffd24a}
 .tile.bad{background:#a83a3a;border-color:#4a1010}
 .tile.good{background:#2f9a4a;border-color:#0a3a14}
+.vis{position:absolute;left:36%;top:8%;width:28%;z-index:4}
+.vis .fr{background:#f8f8f0;border:.5cqw solid #4a5a7a;outline:.3cqw solid #e9a24c;border-radius:1cqw;padding:1cqw;box-shadow:.4cqw .4cqw 0 #0006}
+.vis img{display:block;width:100%;height:24cqw;object-fit:contain}
+.vis img.px{image-rendering:pixelated}
+.cph{position:absolute;right:2.2%;bottom:3%;width:39.8%;height:28%;z-index:6;background:#f8f8f8;border:.5cqw solid #3a3a52;outline:.3cqw solid #e04a2e;border-radius:1.2cqw;padding:1cqw 1.4cqw;display:flex;flex-direction:column;gap:.8cqw;justify-content:center;box-sizing:border-box}
+.cph .cv{font-size:1.8cqw;letter-spacing:.15cqw;color:#a83a3a;text-align:center;word-break:break-word;line-height:1.5}
+.cph input{font:1.2cqw 'Press Start 2P','Courier New',monospace;text-transform:uppercase;border:.35cqw solid #4a5a7a;border-radius:.8cqw;padding:.7cqw;width:100%;box-sizing:border-box;color:#303040}
+.cph .btn{align-self:flex-end}
+.it.off.pk{opacity:1;text-decoration:none;background:#d9f2d9}
 .hud{position:absolute;z-index:4;background:#faf4d8;border:.45cqw solid #4a4a5a;border-radius:1cqw .4cqw 1cqw .4cqw;padding:.8cqw 1.4cqw;width:30cqw;color:#2a2a3a;box-shadow:.3cqw .3cqw 0 #0006}
 .hud .nm{display:flex;justify-content:space-between;font-size:1.25cqw}
 .hud .nm span{font-size:1cqw;color:#7a5a20}
@@ -252,6 +261,42 @@ let gymCtx=null,notesOpen=null;   // gimnasio actual (para los apuntes de SELECT
    REGLA PARA EDITAR PREGUNTAS: en cada pregunta, la PRIMERA opción es la correcta
    (el juego las baraja al mostrarlas). Única excepción: Tomás usa la lista "correct".
    Los textos largos se reparten solos en varias páginas del cuadro de diálogo. */
+/* ---------- RETOS: 4 por líder, cada uno con un tipo distinto ----------
+   pasos: o=opciones (texto, con img opcional) · i=íconos · t=fichas ocultas · ord=ordenar · txt=descifrar · dil=dilema (sin respuesta única) */
+function mt(t,P){return P.slice(0,-1).map((p,j)=>({k:'o',q:t+'\n'+p[0],o:P.slice(j).map(x=>x[1]),ok:`${p[0]} ↔ ${p[1]}.`+(j===P.length-2?` Y la última pareja encaja sola: ${P[j+1][0]} ↔ ${P[j+1][1]}.`:'')}))}
+const RET=[
+[ {l:'VERDADERO O FALSO',steps:[{k:'o',q:'Sócrates dejó sus ideas por escrito en varios libros. ¿Verdadero o falso?',o:['Verdadero','Falso'],c:1,fixed:true,ok:'Falso: Sócrates no escribió nada. Lo conocemos por Platón y por otros discípulos.'}]},
+  {l:'ORDENAMIENTO',steps:[{k:'ord',q:'Ordena a estos pensadores griegos del más antiguo al más reciente.',items:['Tales','Sócrates','Platón','Aristóteles'],ok:'El orden es Tales, Sócrates, Platón y Aristóteles.'}]},
+  {l:'ASOCIACIÓN',steps:mt('Une cada concepto con su significado.',[['Mayéutica','Preguntar para ayudar a descubrir ideas propias'],['Areté','Excelencia del carácter'],['Logos','Razón'],['Mito','Relato tradicional']])},
+  {l:'DILEMA',steps:[{k:'dil',q:'Un compañero copia en un examen y te pide guardar silencio. ¿Qué postura tomas?',p:['Le pido que no copie','Guardo silencio'],
+    r:[[['Porque actuar bien es parte de la virtud','Sócrates vería aquí la areté: actuar con excelencia de carácter, aunque incomode.'],['Porque una vida examinada exige coherencia','Sócrates diría que examinar tus actos es el primer paso para vivir bien.'],['Porque copiar también lo perjudica a él','Sócrates te preguntaría qué es realmente un bien para tu compañero: la nota o aprender.']],
+       [['Así me evito problemas','Sócrates te preguntaría: ¿es justo o solo conveniente? Esa pregunta es el inicio del examen de uno mismo.'],['Porque no es asunto mío','Sócrates te invitaría a dialogar: ¿de verdad no nos concierne cómo actúan los demás?'],['Porque somos amigos','Sócrates preguntaría si ser buen amigo es callar o ayudar a que el otro sea mejor.']]]}]}
+],
+[ {l:'IDENTIFICACIÓN VISUAL',steps:[{k:'o',img:'o_tomas',q:'Observa la obra. ¿A qué época pertenece este arte?',o:['Edad Media','Edad Antigua','Edad Moderna','Edad Contemporánea'],ok:'Es un mosaico del siglo XII (Cristo Pantocrátor, Monreale): arte de la Edad Media.'}]},
+  {l:'IMÁGENES',steps:[{k:'i',q:'¿Qué imagen representa la FE?',o:['cruz','dado','moneda','espada'],ok:'La cruz es el símbolo de la fe cristiana medieval.'},
+    {k:'i',q:'¿Qué imagen representa la RAZÓN?',o:['bombilla','dado','corona','moneda'],ok:'La razón es la luz natural del entendimiento.'},
+    {k:'i',q:'¿Cuál imagen NO pertenece al pensamiento medieval?',o:['catedral','cruz','vela','fabrica'],c:3,ok:'La fábrica es propia de la era industrial; catedral, cruz y vela sí son medievales.'}]},
+  {l:'DECODIFICACIÓN',steps:[{k:'txt',q:'Cada letra se movió 3 lugares adelante en el alfabeto. Retrocede 3 letras para leer la gran obra de Tomás.',cipher:'VXPD WHRORJLFD',ans:'SUMA TEOLOGICA',h:'V→S, X→U, P→M, D→A… La respuesta es SUMA TEOLÓGICA.',ok:'SUMA TEOLÓGICA: la gran obra de Tomás de Aquino.'}]},
+  {l:'VERDADERO O FALSO',steps:[{k:'o',q:'«La fe y la razón se contradicen». ¿Verdadero o falso?',o:['Verdadero','Falso'],c:1,fixed:true,ok:'Falso: para Tomás son dos caminos hacia la misma verdad.'},
+    {k:'o',q:'«Tomás une la filosofía de Aristóteles con la fe cristiana». ¿Verdadero o falso?',o:['Verdadero','Falso'],c:0,fixed:true,ok:'Verdadero: esa es la gran síntesis de la Suma teológica.'},
+    {k:'o',q:'«La razón sobra si se tiene fe». ¿Verdadero o falso?',o:['Verdadero','Falso'],c:1,fixed:true,ok:'Falso: para Tomás la razón y la fe se complementan.'}]}
+],
+[ {l:'ORDENAMIENTO',steps:[{k:'ord',q:'Ordena los pasos del método de Descartes.',items:['Aceptar solo lo evidente','Dividir el problema en partes','Ordenar las ideas','Revisarlo todo'],ok:'Método: aceptar solo lo evidente, dividir, ordenar las ideas y revisarlo todo.'}]},
+  {l:'ASOCIACIÓN',steps:mt('Une cada idea con su autor.',[['«Pienso, luego existo»','Descartes'],['El universo como un reloj','Newton']])},
+  {l:'DECODIFICACIÓN',steps:[{k:'txt',q:'Cada letra se movió 3 lugares adelante. Retrocede 3 letras para leer mi frase más famosa.',cipher:'SLHQVR OXHJR HALVWR',ans:'PIENSO LUEGO EXISTO',h:'S→P, L→I, H→E, Q→N… Es «Pienso, luego existo».',ok:'«Pienso, luego existo» (Discurso del método, 1637): el cogito.'}]},
+  {l:'IDENTIFICACIÓN VISUAL',steps:[{k:'o',img:'i_reloj',q:'Estos engranes representan una idea de Newton. ¿Cuál?',o:['El universo-reloj: leyes regulares','Un universo sin leyes ni orden','La duda metódica','La fe como único camino'],ok:'Para Newton el universo funciona como un reloj: con leyes regulares que la razón puede descubrir.'}]}
+],
+[ {l:'ASOCIACIÓN',steps:mt('Une cada frase u obra con su autor.',[['«Dios ha muerto»','Nietzsche'],['El origen de las especies','Darwin'],['El Manifiesto Comunista','Marx (con Engels)'],['Temor y temblor','Kierkegaard']])},
+  {l:'DILEMA',steps:[{k:'dil',q:'Heredaste una costumbre que todos siguen sin cuestionar. ¿Qué haces?',p:['La sigo como todos','La reviso antes de seguirla'],
+    r:[[['Para no sentirme fuera del grupo','Nietzsche te preguntaría si esa costumbre es tuya o solo del rebaño.'],['Porque siempre se ha hecho así','Nietzsche invita a examinar lo que damos por hecho antes de aceptarlo.'],['Porque confío en quienes me la enseñaron','Eso puede ser valioso; Nietzsche solo pediría que sea una elección tuya y no un hábito ciego.']],
+       [['Para decidir con libertad','Nietzsche celebraría que revises los valores heredados con espíritu crítico.'],['Para saber si la hago mía','Kierkegaard diría que elegir en primera persona es parte de ser un individuo.'],['Para responder por lo que hago','Ser libre implica asumir responsabilidad por tus actos.']]]}]},
+  {l:'ORDENAMIENTO',steps:[{k:'ord',q:'Ordena estas obras de la más antigua a la más reciente.',items:['Temor y temblor','El Manifiesto Comunista','El origen de las especies','La gaya ciencia'],ok:'Temor y temblor (1843), Manifiesto Comunista (1848), El origen de las especies (1859) y La gaya ciencia (1882).'}]},
+  {l:'FICHAS OCULTAS',steps:[
+    {k:'t',q:'Nietzsche te reta a elegir tu propio camino en lugar de seguir al rebaño. ¿Qué ficha lo esconde?',o:['Libertad','Obediencia','Azar','Miedo'],ok:'La libertad es elegir y asumir tu propio camino.'},
+    {k:'t',q:'Tras «Dios ha muerto», hay que revisar con espíritu crítico lo que llamamos bueno y malo. ¿Qué ficha lo esconde?',o:['Valores','Moda','Rumor','Capricho'],ok:'Los valores orientan la vida; Nietzsche invita a revisarlos críticamente.'},
+    {k:'t',q:'«Llega a ser el que eres» (La gaya ciencia, §270): constrúyete tú, no aceptes lo que otros dicen que eres. ¿Qué ficha lo esconde?',o:['Identidad','Máscara','Multitud','Etiqueta'],ok:'La identidad se construye; no es una etiqueta impuesta.'},
+    {k:'t',q:'El individuo soberano tiene el «privilegio» de responder por sus actos (Genealogía de la moral II, §2). ¿Qué ficha lo esconde?',o:['Responsabilidad','Culpa ajena','Excusa','Indiferencia'],ok:'Ser libre implica responder por los propios actos.'}]}
+]];
 const G=[
 {id:1,name:'SÓCRATES',bg:'socrates',badge:'virtud',BN:'Insignia de la Virtud',place:'GIMNASIO ÁGORA · EDAD ANTIGUA',
  arte:'Vasija griega de figuras rojas (Grecia antigua)',musica:'Epitafio de Seikilos',url:'https://www.youtube.com/watch?v=O6ILsg3q3po',
@@ -259,49 +304,30 @@ const G=[
  intro:'Soy Sócrates, líder del Gimnasio Ágora. Aquí no se gana con fuerza, sino con preguntas. ¡Demuestra qué has aprendido de la Edad Antigua!',
  clase:['Método: preguntar y dialogar (mayéutica) para que cada persona descubra la verdad por sí misma.','Virtud (areté): la excelencia del carácter. Quien conoce el bien, obra bien.','«Conócete a ti mismo»: la vida filosófica empieza examinándote.'],
  takeaway:'Ser humano es examinar la propia vida y buscar la excelencia (virtud).',
- qs:[['¿Qué método usaba Sócrates para buscar la verdad?',['El diálogo y las preguntas','Memorizar dogmas'],'Sócrates dialogaba y preguntaba (la mayéutica) para que cada persona descubriera la verdad por sí misma.'],
-     ['Según Platón, Sócrates afirmó que merece ser vivida…',['Una vida examinada','Una vida sin preguntas'],'Sócrates sostenía que solo una vida examinada merece ser vivida (Apología 38a).'],
-     ['En la filosofía griega, ¿qué busca quien practica la virtud?',['Vivir con excelencia','Acumular riquezas','Ganar fama'],'La virtud (areté) es la excelencia del carácter para vivir bien.'],
-     ['¿Qué usaba la filosofía antigua para comprender al ser humano y al mundo?',['La razón','El azar','La superstición'],'Los griegos pasaron del mito al logos: usaron la razón para explicar el mundo.'],
-     ['«Conócete a ti mismo» invita a…',['Reflexionar sobre uno mismo','Imitar a los demás'],'El conocimiento de uno mismo es el punto de partida de la vida filosófica.']]},
+ retos:RET[0]},
 {id:2,name:'TOMÁS DE AQUINO',bg:'tomas',badge:'sentido',BN:'Insignia del Sentido',place:'ABADÍA DEL SENTIDO · EDAD MEDIA',
  arte:'Cristo Pantocrátor (mosaico de Monreale, s. XII)',musica:'Canto gregoriano «Ubi caritas»',url:'https://www.youtube.com/watch?v=b_QEP-RHYLY',
  frase:'«La gracia no destruye la naturaleza, sino que la perfecciona». (Suma teológica I, q. 1, a. 8)',
- intro:'Soy Tomás de Aquino. En esta abadía la fe y la razón caminan juntas. Selecciona las imágenes correctas para demostrar tu sabiduría.',
+ intro:'Soy Tomás de Aquino. En esta abadía la fe y la razón caminan juntas. Observa, descifra y responde para demostrar tu sabiduría.',
  clase:['Fe y razón no se contradicen: son dos caminos hacia la misma verdad.','Tomás une la filosofía de Aristóteles con la fe cristiana (Suma teológica).','En la Edad Media el sentido de la vida se buscaba en Dios, en la comunidad y en el conocimiento.'],
  takeaway:'Ser humano es buscar sentido: la fe y la razón se complementan.',
- icon:true,
- qs:[['¿Qué imagen representa la FE?',['cruz','dado','moneda'],'La cruz es el símbolo de la fe cristiana medieval.'],
-     ['¿Qué imagen representa la RAZÓN?',['bombilla','espada','corona'],'La razón es la luz natural del entendimiento.'],
-     ['¿Qué imagen representa el CONOCIMIENTO?',['libro','dado','espada'],'El conocimiento se cultivaba en los libros y las escuelas medievales.'],
-     ['¿Qué imagen representa la ESPIRITUALIDAD?',['vela','fabrica','moneda'],'La vela simboliza la oración y la vida interior.'],
-     ['¿Cuál imagen NO pertenece al pensamiento medieval?',['catedral','fabrica','cruz'],'La fábrica es propia de la era industrial; la catedral sí es medieval.']],
- correct:[0,0,0,0,1]},
+ retos:RET[1]},
 {id:3,name:'RENÉ DESCARTES',bg:'descartes',badge:'razon',BN:'Insignia de la Razón',place:'LABORATORIO DE LA RAZÓN · EDAD MODERNA',
  arte:'La escuela de Atenas (Rafael, 1509-1511)',musica:'Canon en re mayor (Pachelbel)',url:'https://www.youtube.com/watch?v=JvNQLJ1_HQ0',
  frase:'«Pienso, luego existo». (Descartes, Discurso del método, 1637)',
- intro:'Soy René Descartes. En mi laboratorio solo es verdadero lo que resiste la duda. Resuelve mis acertijos con claridad y método.',
+ intro:'Soy René Descartes. En mi laboratorio solo es verdadero lo que resiste la duda. Ordena, descifra y razona con claridad y método.',
  clase:['Duda metódica: dudar de todo hasta encontrar algo indudable.','Cogito, ergo sum: si pienso, existo. Es la primera certeza.','Método: aceptar solo lo evidente, dividir los problemas, ordenar las ideas y revisarlo todo.'],
  takeaway:'Ser humano es pensar con razón crítica y autonomía.',
- qs:[['ACERTIJO 1: Dudo de mis sentidos, de los sueños y del mundo, pero al dudar descubro algo seguro. ¿Qué método uso?',['La duda metódica','La fe ciega','La costumbre'],'Descartes duda de todo para hallar una certeza indudable.'],
-     ['ACERTIJO 2: Todos la poseemos por igual y con ella ordeno mis ideas. ¿Qué soy?',['La razón','El azar','La tradición'],'Para Descartes la razón es lo mejor repartido entre los seres humanos.'],
-     ['ACERTIJO 3: Piensa por ti mismo, sin tutores que decidan por ti. ¿Qué valor es?',['Autonomía','Obediencia','Dependencia'],'La autonomía es pensar y decidir por cuenta propia.'],
-     ['ACERTIJO 4: «Pienso, luego existo». ¿Qué certeza descubrí?',['El cogito','La sensación','El rumor'],'El cogito es la primera verdad: si pienso, existo.'],
-     ['ACERTIJO 5: No acepto nada sin examinar sus fundamentos. ¿Qué actitud es?',['Conocimiento crítico','Prejuicio','Dogma'],'El pensamiento crítico examina antes de aceptar.']]},
+ retos:RET[2]},
 {id:4,name:'NIETZSCHE',bg:'nietzsche',badge:'libertad',BN:'Insignia de la Libertad',place:'ENTRENADOR ERRANTE · EDAD CONTEMPORÁNEA',
  arte:'El pensador (Rodin, 1880-1904)',musica:'Also sprach Zarathustra (Strauss, 1896)',url:'https://www.youtube.com/watch?v=GfwAPg4rQQE',
  frase:'«Dios ha muerto». (Nietzsche, La gaya ciencia, §125, 1882)',
- intro:'Soy Nietzsche, el entrenador errante. Esconderé los valores tras unas fichas: memoriza dónde queda cada uno y luego descubre cuál responde a mi reto.',
+ intro:'Soy Nietzsche, el entrenador errante. Cuestiono todo lo heredado: demuestra que sabes pensar por ti mismo. Y atento a mis fichas ocultas: memoriza dónde queda cada valor.',
  clase:['«Dios ha muerto» es un diagnóstico: los valores tradicionales ya no sostienen a la sociedad europea.','Nietzsche invita a revisar con espíritu crítico los valores heredados.','Libertad con responsabilidad: asumir quién eres y responder por lo que haces.'],
  takeaway:'Ser humano es ejercer la libertad con responsabilidad y revisar los propios valores.',
- tiles:true,
- qs:[['Nietzsche te reta a elegir tu propio camino en lugar de seguir al rebaño. ¿Qué ficha lo esconde?',['Libertad','Obediencia','Azar','Miedo'],'La libertad es elegir y asumir tu propio camino.'],
-     ['Tras «Dios ha muerto», hay que revisar con espíritu crítico lo que llamamos bueno y malo. ¿Qué ficha lo esconde?',['Valores','Moda','Rumor','Capricho'],'Los valores orientan la vida; Nietzsche invita a revisarlos críticamente.'],
-     ['«Llega a ser el que eres» (La gaya ciencia, §270): constrúyete tú, no aceptes lo que otros dicen que eres. ¿Qué ficha lo esconde?',['Identidad','Máscara','Multitud','Etiqueta'],'La identidad se construye; no es una etiqueta impuesta.'],
-     ['Antes de aceptar lo que «siempre se ha hecho así», detente a examinarlo. ¿Qué ficha lo esconde?',['Reflexión','Impulso','Prisa','Costumbre'],'La reflexión examina lo que damos por hecho.'],
-     ['El individuo soberano tiene el «privilegio» de responder por sus actos (Genealogía de la moral II, §2). ¿Qué ficha lo esconde?',['Responsabilidad','Culpa ajena','Excusa','Indiferencia'],'Ser libre implica responder por los propios actos.']]}
+ retos:RET[3]}
 ];
-const ICON_NAME={cruz:'la Cruz',dado:'el Dado',moneda:'la Moneda',bombilla:'la Bombilla',espada:'la Espada',corona:'la Corona',libro:'el Libro',vela:'la Vela',fabrica:'la Fábrica',catedral:'la Catedral'};
+const ICON_NAME={reloj:'el Reloj',cruz:'la Cruz',dado:'el Dado',moneda:'la Moneda',bombilla:'la Bombilla',espada:'la Espada',corona:'la Corona',libro:'el Libro',vela:'la Vela',fabrica:'la Fábrica',catedral:'la Catedral'};
 const REFL=['1. Después de recorrer la Liga: ¿qué es el ser humano para ti?',
  '2. ¿Qué te enseñó Sócrates sobre la virtud y el examen de la propia vida? ¿Y qué aportan la fe y la razón de Tomás de Aquino?',
  '3. ¿Qué significan para ti la razón crítica de Descartes y la libertad responsable de Nietzsche?',
@@ -488,23 +514,51 @@ function clase(k){
   H.b=tap(()=>{SFX.play('avanzar');map(k)});
 }
 function battle(k){
-  const g=G[k];
-  const st={q:0,hp:5,foe:5,first:0,wq:0};
+  const g=G[k],R=g.retos,N=R.length;
+  const st={q:0,s:0,hp:5,foe:N,first:0,wr:0,ws:0};
   const flee=()=>{SFX.play('bloqueado');toast('¡No puedes huir de un combate de gimnasio! Pulsa SELECT para repasar la lección.')};
+  const step=()=>R[st.q].steps[st.s];
+  const box=()=>step().k==='t'?'big':'';   // en las fichas no hay menú abajo a la derecha: el cuadro usa todo el ancho
   const hud=()=>{scene(g.bg,'');gymCtx=k;
-    L(`<div class="hud foe"><div class="nm">${g.name}<span>Nv.100</span></div><div class="hp"><b>PS</b><i><u style="width:${st.foe/5*100}%" class="${bar(st.foe/5)}"></u></i></div></div>`);
+    L(`<div class="hud foe"><div class="nm">${g.name}<span>Nv.100</span></div><div class="hp"><b>PS</b><i><u style="width:${st.foe/N*100}%" class="${bar(st.foe/N)}"></u></i></div></div>`);
     L(`<div class="hud me"><div class="nm">ALEX<span>ÁNIMO</span></div><div class="hp"><b>PS</b><i><u style="width:${st.hp/5*100}%" class="${bar(st.hp/5)}"></u></i></div><div class="num">${st.hp}/5</div></div>`);
     L(img('sp_alex','pl'));
-    L(`<div class="qn">RETO ${st.q+1}/5</div>`);};
-  const upd=()=>{const f=scr.querySelector('.hud.foe'),m=scr.querySelector('.hud.me');setBar(f,st.foe/5);setBar(m,st.hp/5);m.querySelector('.num').textContent=st.hp+'/5'};
+    L(`<div class="qn">RETO ${st.q+1}/${N} · ${R[st.q].l}</div>`);};
+  const upd=()=>{const f=scr.querySelector('.hud.foe'),m=scr.querySelector('.hud.me');setBar(f,st.foe/N);setBar(m,st.hp/5);m.querySelector('.num').textContent=st.hp+'/5'};
   let M=null;
-  const box=g.tiles?'big':'';   // en Nietzsche no hay menú abajo a la derecha: el cuadro usa todo el ancho
+  const clear=()=>{if(M){M.el.remove();M=null}scr.querySelectorAll('.vis,.cph').forEach(e=>e.remove())};
+  /* avanza: termina el paso (o el reto entero) y muestra el mensaje */
+  function adv(lines){
+    const last=st.s>=R[st.q].steps.length-1;
+    st._o=null;st._pk=null;
+    if(last){if(st.wr===0)st.first++;st.foe--;upd();scr.querySelector('.hud.foe').classList.add('flash')}
+    say(lines,()=>{
+      if(last){st.q++;st.s=0;st.wr=0}else st.s++;
+      st.ws=0;
+      if(st.q>=N)return win();
+      hud();M=null;ask(true);
+    },{title:g.name,keep:false,cls:box()});
+  }
+  const right=msg=>{SFX.play('correcto');adv(['¡CORRECTO! '+msg])};
+  function wrong(msg,hint,retry){
+    SFX.play('incorrecto');st.wr++;st.ws++;st.hp--;
+    upd();scr.querySelector('.hud.me').classList.add('shake');
+    const lines=[msg];
+    if(st.ws>=2)lines.push('PISTA: '+hint);   // la pista va en su propia página para que se lea completa
+    let dead=false;
+    if(st.hp<=0){dead=true;lines.push('¡Alex se quedó sin ánimo!')}
+    say(lines,()=>{dead?gameOver(k):retry()},{title:'¡UPS!',keep:false,cls:box()});
+  }
+  function freeze(){M.el.classList.add('idle');M.el.style.pointerEvents='none';M.els.forEach(e=>e.style.pointerEvents='none')}
   function ask(first){
-    if(M){M.el.remove();M=null}   // quita el menú anterior para que no se acumulen
-    const q=g.qs[st.q];
-    let opts=q[1].map((t,i)=>({t,ok:g.correct?g.correct[st.q]===i:i===0}));
-    if(!st._o||first){st._o=shuffle(opts)}
-    if(g.tiles){
+    clear();
+    const s=step();
+    if(s.k==='dil')return dil(s);
+    if(s.k==='txt')return txt(s);
+    if(s.k==='ord')return ord(s);
+    if(s.img)L(`<div class="vis"><div class="fr"><img class="${s.img[0]==='i'?'px':''}" src="${A[s.img]}" alt=""></div></div>`);
+    if(!st._o||first){const o=s.o.map((t,i)=>({t,ok:i===(s.c||0)}));st._o=s.fixed?o:shuffle(o)}
+    if(s.k==='t'){
       M=menu(st._o.map(o=>({html:'<span class="qm">?</span>',off:o.dead})),'tiles',pick,{quiet:true});
       M.els.forEach((e,i)=>{e.className='tile';e.style.left=['1.5%','15.5%','71.5%','85.5%'][i]});
       M.els.forEach((e,i)=>{if(st._o[i].dead){e.classList.add(st._o[i].ok?'good':'bad');e.innerHTML=st._o[i].t}});
@@ -515,56 +569,93 @@ function battle(k){
       const play=()=>{   // fichas boca abajo: ahora se responde el reto
         if(st.peek)for(let j=0;j<4;j++)SFX.play('voltear',j*.09);stop();st.peek=false;M.el.classList.remove('idle');
         M.els.forEach((e,i)=>{e.classList.remove('peek');if(!st._o[i].dead)e.innerHTML='<span class="qm">?</span>'});
-        typeBox(q[0],{title:g.name,cls:box});setc();
+        typeBox(s.q,{title:g.name,cls:'big'});setc();
         H.mv=(dx,dy)=>{const d=dx||dy;if(!d)return;const c0=cur;do{cur=(cur+(d>0?1:-1)+4)%4}while(st._o[cur].dead);if(cur!==c0)SFX.play('cursor');setc()};
         H.a=tap(()=>pick(cur));H.b=flee;
         H.num=n=>{if(n>=1&&n<=4)pick(n-1)};
       };
-      if(first){   // al empezar cada reto las fichas se ven unos segundos: hay que memorizarlas
+      if(first){   // al empezar cada paso las fichas se ven unos segundos: hay que memorizarlas
         st.peek=true;H.mv=H.num=null;setc();
         M.el.classList.add('idle');   // mientras se memoriza, tocar la pantalla sirve para empezar ya
         M.els.forEach((e,i)=>{e.classList.add('peek');e.innerHTML=st._o[i].t});for(let j=0;j<4;j++)SFX.play('voltear',j*.09);
-        typeBox('¡Memoriza dónde queda cada valor! Las fichas se darán la vuelta en unos segundos… (toca la pantalla o pulsa A para empezar ya)',{title:g.name,cls:box});
+        typeBox('¡Memoriza dónde queda cada valor! Las fichas se darán la vuelta en unos segundos… (toca la pantalla o pulsa A para empezar ya)',{title:g.name,cls:'big'});
         H.a=H.b=tap(play,700);
         tmr=setTimeout(play,4500);
       }else play();
     }else{
-      typeBox(q[0],{title:g.name});
-      const items=st._o.map(o=>g.icon?{html:img('i_'+o.t),cls:'ico',off:o.dead}:{html:o.t,off:o.dead});
-      M=menu(items,'opts'+(g.icon?' icons':''),pick,{iconlist:false,quiet:true,back:flee});
+      typeBox(s.q,{title:g.name});
+      const ic=s.k==='i';
+      const items=st._o.map(o=>ic?{html:img('i_'+o.t),cls:'ico',off:o.dead}:{html:o.t,off:o.dead});
+      M=menu(items,'opts'+(ic?' icons':''),pick,{iconlist:false,quiet:true,back:flee});
     }
   }
-  function freeze(){M.el.classList.add('idle');M.el.style.pointerEvents='none';M.els.forEach(e=>e.style.pointerEvents='none')}
   function pick(i){
     if(st.peek)return;
     const o=st._o[i];if(!o||o.dead){if(o)SFX.play('bloqueado');return}
-    const q=g.qs[st.q];
+    const s=step();
     H.a=H.mv=H.num=null;
     if(o.ok){
-      SFX.play('correcto');
-      if(st.wq===0)st.first++;
       o.dead=true;
-      st.foe--;upd();scr.querySelector('.hud.foe').classList.add('flash');
-      if(g.tiles){M.els[i].classList.add('good');M.els[i].innerHTML=o.t;freeze()}else{M.el.remove();M=null}
-      say(['¡CORRECTO! '+q[2]],()=>{
-        st.q++;st.wq=0;st._o=null;
-        if(st.q>=5)win();else{hud();M=null;ask(true)}
-      },{title:g.name,keep:false,cls:box});
+      if(s.k==='t'){M.els[i].classList.add('good');M.els[i].innerHTML=o.t;freeze()}else{M.el.remove();M=null}
+      right(s.ok);
     }else{
-      SFX.play('incorrecto');o.dead=true;st.wq++;st.hp--;
-      if(g.tiles){M.els[i].classList.add('bad');M.els[i].innerHTML=o.t}else M.off(i);
+      o.dead=true;
+      if(s.k==='t'){M.els[i].classList.add('bad');M.els[i].innerHTML=o.t}else M.off(i);
       freeze();
-      upd();scr.querySelector('.hud.me').classList.add('shake');
-      let msg;
-      if(g.icon)msg=`Esa es ${ICON_NAME[o.t]}. Alex pierde 1 de ánimo. Piensa en lo que representaba en la Edad Media y elige otra imagen.`;
-      else if(g.tiles)msg=`Esa ficha escondía «${o.t}». Alex pierde 1 de ánimo. ¡Sigue buscando!`;
-      else msg='Esa no es. Alex pierde 1 de ánimo. Lee la pregunta otra vez y elige otra opción.';
-      const lines=[msg];
-      if(st.wq>=2)lines.push('PISTA: '+q[2]);   // la pista va en su propia página para que se lea completa
-      let dead=false;
-      if(st.hp<=0){dead=true;lines.push('¡Alex se quedó sin ánimo!')}
-      say(lines,()=>{dead?gameOver(k):ask(false)},{title:'¡UPS!',keep:false,cls:box});
+      const msg=s.k==='i'?`Esa es ${ICON_NAME[o.t]}. Alex pierde 1 de ánimo. Piensa en lo que representa cada imagen y elige otra.`
+        :s.k==='t'?`Esa ficha escondía «${o.t}». Alex pierde 1 de ánimo. ¡Sigue buscando!`
+        :'Esa no es. Alex pierde 1 de ánimo. Lee la pregunta otra vez y elige otra opción.';
+      wrong(msg,s.ok,()=>ask(false));
     }
+  }
+  /* ORDENAMIENTO: se eligen las tarjetas en el orden correcto (B deshace la última) */
+  function ord(s){
+    typeBox(s.q+' Elige una a una, en orden. (B: deshacer)',{title:g.name});
+    if(!st._o){let o;do{o=shuffle(s.items.map((t,i)=>({t,i})))}while(o.every((x,j)=>x.i===j));st._o=o}
+    st._pk=[];
+    M=menu(st._o.map(o=>({html:o.t})),'opts',i=>{
+      const o=st._o[i];if(st._pk.includes(i)){SFX.play('bloqueado');return}
+      if(o.i===st._pk.length){
+        st._pk.push(i);SFX.play('cursor');
+        const n=st._pk.length;M.items[i].off=true;M.els[i].classList.add('off','pk');M.els[i].innerHTML=n+'. '+o.t;
+        if(n===s.items.length){H.a=H.mv=H.num=null;freeze();right(s.ok)}
+      }else{
+        H.a=H.mv=H.num=null;freeze();
+        wrong(`«${o.t}» no va en el lugar ${st._pk.length+1}. Alex pierde 1 de ánimo y el orden se reinicia.`,s.ok,()=>ask(false));
+      }
+    },{iconlist:false,quiet:true,back:()=>{
+      const i=st._pk.pop();if(i==null)return flee();
+      SFX.play('cursor');M.items[i].off=false;M.els[i].classList.remove('off','pk');M.els[i].innerHTML=st._o[i].t;
+    }});
+  }
+  /* DECODIFICACIÓN: se escribe la respuesta */
+  const norm=t=>t.normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/[^A-ZÑ]/g,'');
+  function txt(s){
+    typeBox(s.q,{title:g.name});
+    const c=L(`<div class="cph"><div class="cv">${s.cipher}</div><input maxlength="40" placeholder="Escribe la respuesta…" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="btn">OK</button></div>`);
+    const inp=c.querySelector('input');
+    const go=()=>{
+      if(!norm(inp.value)){SFX.play('bloqueado');return}
+      H.a=H.b=null;inp.blur();
+      if(norm(inp.value)===norm(s.ans)){c.remove();right(s.ok)}
+      else wrong('Ese mensaje no coincide. Alex pierde 1 de ánimo. Revisa cuántas letras retrocedes e inténtalo otra vez.',s.h||s.ok,()=>ask(false));
+    };
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();go()}});
+    c.querySelector('button').addEventListener('click',e=>{e.stopPropagation();go()});
+    H.a=tap(()=>inp.focus());H.b=flee;
+    setTimeout(()=>{try{inp.focus({preventScroll:true})}catch(e){}},50);
+  }
+  /* DILEMA: no hay respuesta única ni se pierde ánimo; el líder comenta */
+  function dil(s){
+    typeBox(s.q,{title:g.name});
+    M=menu(s.p.map(t=>({html:t})),'opts',i=>{
+      M.remove();
+      typeBox('¿Por qué eliges esa postura? (B: cambiar de postura)',{title:g.name});
+      M=menu(s.r[i].map(r=>({html:r[0]})),'opts',j=>{
+        M.remove();M=null;SFX.play('correcto');
+        adv([s.r[i][j][1],'En un dilema no hay una sola respuesta correcta: lo valioso es examinar tus razones. ¡Reto superado!']);
+      },{iconlist:false,quiet:true,back:()=>ask(false)});
+    },{iconlist:false,quiet:true,back:flee});
   }
   function win(){
     done[k]=true;save();SFX.play('victoria');
@@ -584,7 +675,7 @@ function gameOver(k){
 function badge(k,first){
   const g=G[k];scene('bg_final');SFX.play('insignia');L('<div class="stars"></div>');
   L(img('b_'+g.badge,'badgeBig'));
-  say([`¡Felicidades, Alex! Has obtenido la ${g.BN}. Sumas ${done.filter(Boolean).length} de 4 insignias para tu Pokédex del Ser.`,`Respondiste ${first} de 5 retos a la primera. ${first===5?'¡Perfecto!':first>=3?'¡Muy bien!':'Repite el gimnasio cuando quieras: repasar también es aprender.'}`,`Lo que aprendiste: ${g.takeaway}`],()=>map(Math.min(k+1,4)),{title:'INSIGNIA'});
+  say([`¡Felicidades, Alex! Has obtenido la ${g.BN}. Sumas ${done.filter(Boolean).length} de 4 insignias para tu Pokédex del Ser.`,`Respondiste ${first} de ${g.retos.length} retos a la primera. ${first===g.retos.length?'¡Perfecto!':first>=g.retos.length-1?'¡Muy bien!':'Repite el gimnasio cuando quieras: repasar también es aprender.'}`,`Lo que aprendiste: ${g.takeaway}`],()=>map(Math.min(k+1,4)),{title:'INSIGNIA'});
 }
 function glitch(){
   music(0);scene('bg_distorsion','glitch');SFX.play('glitch');L(`<img class="glart" src="${A.o_posmo}" alt="Retratos de Marilyn Monroe (Warhol)">`);

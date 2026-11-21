@@ -24,7 +24,7 @@ for k in ['title','lab','distorsion','final','dex']: jpg(A+f'bg_{k}.jpg','bg_'+k
 for k in ['alex','prof','leonel']: png(A+f'sprite_{k}.png','sp_'+k)
 for k in ['virtud','sentido','razon','libertad']:
     png(A+f'badge_{k}.png','b_'+k,(128,128)); png(A+f'badge_{k}_off.png','b_'+k+'_off',(128,128))
-for k in ['bombilla','catedral','corona','cruz','dado','espada','fabrica','libro','moneda','vela']: png(A+f'icon_{k}.png','i_'+k,(96,96))
+for k in ['reloj','bombilla','catedral','corona','cruz','dado','espada','fabrica','libro','moneda','vela']: png(A+f'icon_{k}.png','i_'+k,(96,96))
 t=open(D+'/game.tpl.html',encoding='utf-8').read()
 open(D+'/index.html','w',encoding='utf-8').write(t.replace('/*ASSETS*/','const A='+json.dumps(out)+';'))
 print('index.html generado')
